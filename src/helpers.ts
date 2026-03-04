@@ -100,7 +100,7 @@ export function checkIfValueOfEnum(value, enumType) {
  * @param sendType Object of send type
  */
 export function getChTypeOfSendType(sendType) {
-	return parseInt(0x00 + (sendType >> 4)) // right shift by 4, results in only high nibble (ch type)
+	return 0x00 + (sendType >> 4) // right shift by 4, results in only high nibble (ch type)
 }
 
 /**
@@ -109,5 +109,5 @@ export function getChTypeOfSendType(sendType) {
  * @param sendType Object of send type
  */
 export function getSendChTypeOfSendType(sendType) {
-	return parseInt(0x00 + (sendType & 0x0f)) // bitwise and with low nibble to only get its value (send type)
+	return 0x00 + (sendType & 0x0f) // bitwise and with low nibble to only get its value (send type)
 }

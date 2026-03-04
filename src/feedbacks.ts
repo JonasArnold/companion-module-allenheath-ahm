@@ -1,5 +1,13 @@
+// @ts-nocheck
 import { combineRgb } from '@companion-module/base'
 import * as Constants from './constants.js'
+
+export enum FeedbackId {
+	InputMute = 'inputMute',
+	ZoneMute = 'zoneMute',
+	ControlGroupMute = 'cgMute',
+	InputToZoneMute = 'inputToZoneMute',
+}
 
 export function getFeedbacks() {
 	const feedbacks = {}
@@ -11,9 +19,10 @@ export function getFeedbacks() {
 	this.buildFeedbackMonitoringObject = (feedback) => {
 		let extractedFeedbackInfo = {}
 		extractedFeedbackInfo.id = feedback.id
+		const feedbackDefinitionId = feedback.definitionId ?? feedback.feedbackId
 
-		switch (feedback.feedbackId) {
-			case 'inputToZoneMute':
+		switch (feedbackDefinitionId) {
+			case FeedbackId.InputToZoneMute:
 				extractedFeedbackInfo.type = Constants.MonitoredFeedbackType.MuteState
 				extractedFeedbackInfo.sendType = Constants.SendType.InputToZone
 				extractedFeedbackInfo.channel = feedback.options.input
@@ -27,7 +36,7 @@ export function getFeedbacks() {
 		return extractedFeedbackInfo
 	}
 
-	feedbacks['inputMute'] = {
+	feedbacks[FeedbackId.InputMute] = {
 		type: 'boolean',
 		name: 'Change background when input on mute',
 		description: 'When you mute the input change color',
@@ -48,7 +57,7 @@ export function getFeedbacks() {
 		},
 	}
 
-	feedbacks['zoneMute'] = {
+	feedbacks[FeedbackId.ZoneMute] = {
 		type: 'boolean',
 		name: 'Change background when zone on mute',
 		description: 'When you mute the zone change color',
@@ -69,7 +78,7 @@ export function getFeedbacks() {
 		},
 	}
 
-	feedbacks['cgMute'] = {
+	feedbacks[FeedbackId.ControlGroupMute] = {
 		type: 'boolean',
 		name: 'Change background when control group on mute',
 		description: 'When you mute the control group change color',
@@ -90,7 +99,7 @@ export function getFeedbacks() {
 		},
 	}
 
-	feedbacks['inputToZoneMute'] = {
+	feedbacks[FeedbackId.InputToZoneMute] = {
 		type: 'boolean',
 		name: 'Change background when input to zone on mute',
 		description: 'When you mute the input on a zone change color',

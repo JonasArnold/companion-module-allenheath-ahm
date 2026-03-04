@@ -2,22 +2,52 @@
 	"name": "allenheath-ahm",
 	"version": "2.3.0",
 	"description": "Allen & Heath AHM module for Companion",
-	"main": "index.js",
+	"main": "dist/main.js",
 	"type": "module",
 	"scripts": {
-		"format": "prettier -w ."
+		"postinstall": "husky",
+		"build": "rimraf dist && npm run build:main",
+		"build:main": "tsc -p tsconfig.build.json",
+		"package": "npm run build && companion-module-build",
+		"check": "companion-module-check",
+		"dev": "tsc -p tsconfig.build.json --watch",
+		"lint:raw": "eslint",
+		"lint": "npm run lint:raw -- .",
+		"format": "prettier -w .",
+		"check-types": "tsc -p tsconfig.json --noEmit"
 	},
 	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/bitfocus/companion-module-allenheath-ahm.git"
 	},
+	"engines": {
+		"node": "^22.20",
+		"yarn": "^4"
+	},
 	"dependencies": {
-		"@companion-module/base": "~1.11.2"
+		"@companion-module/base": "~1.14.1",
+		"eventemitter3": "^5.0.1"
 	},
 	"devDependencies": {
 		"@companion-module/tools": "^2.6.1",
-		"prettier": "^3.4.2"
+		"@types/node": "^22.19.3",
+		"eslint": "^9.39.2",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.2.7",
+		"prettier": "^3.7.4",
+		"rimraf": "^6.1.2",
+		"typescript": "~5.9.3",
+		"typescript-eslint": "^8.51.0"
 	},
-	"prettier": "@companion-module/tools/.prettierrc.json"
+	"prettier": "@companion-module/tools/.prettierrc.json",
+	"lint-staged": {
+		"*.{css,json,md,scss}": [
+			"prettier --write"
+		],
+		"*.{ts,tsx,js,jsx}": [
+			"npm run lint:raw -- --fix"
+		]
+	},
+	"packageManager": "yarn@4.12.0"
 }
