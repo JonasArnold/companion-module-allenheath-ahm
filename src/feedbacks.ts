@@ -53,7 +53,7 @@ export function getFeedbacks() {
 			},
 		],
 		callback: (feedback, bank) => {
-			return this.inputsMute[parseInt(feedback.options.input) - 1] == 1
+			return this.matrix.inputsMute[parseInt(feedback.options.input) - 1] == 1
 		},
 	}
 
@@ -74,7 +74,7 @@ export function getFeedbacks() {
 			},
 		],
 		callback: (feedback, bank) => {
-			return this.zonesMute[parseInt(feedback.options.zone) - 1] == 1
+			return this.matrix.zonesMute[parseInt(feedback.options.zone) - 1] == 1
 		},
 	}
 
@@ -95,7 +95,7 @@ export function getFeedbacks() {
 			},
 		],
 		callback: (feedback, bank) => {
-			return this.controlgroupsMute[parseInt(feedback.options.cg) - 1] == 1
+			return this.matrix.controlgroupsMute[parseInt(feedback.options.cg) - 1] == 1
 		},
 	}
 
@@ -122,19 +122,19 @@ export function getFeedbacks() {
 			},
 		],
 		callback: (feedback, bank) => {
-			return this.inputsToZonesMute[parseInt(feedback.options.input)]?.[parseInt(feedback.options.zone)] == 1
+			return this.matrix.inputsToZonesMute[parseInt(feedback.options.input)]?.[parseInt(feedback.options.zone)] == 1
 		},
 		subscribe: (feedback) => {
 			// add this feedback to the monitored feedbacks
-			this.monitoredFeedbacks.push(this.buildFeedbackMonitoringObject(feedback))
+			this.matrix.monitoredFeedbacks.push(this.buildFeedbackMonitoringObject(feedback))
 		},
 		unsubscribe: (feedback) => {
 			// remove this feedback from the monitored feedbacks
 			// find index of feedback with this ID in the array
-			const feedbackIndex = this.monitoredFeedbacks.findIndex((monFeedback) => monFeedback.id == feedback.id)
+			const feedbackIndex = this.matrix.monitoredFeedbacks.findIndex((monFeedback) => monFeedback.id == feedback.id)
 			if (feedbackIndex > -1) {
 				// only splice array when feedback was found
-				this.monitoredFeedbacks.splice(feedbackIndex, 1) // 2nd parameter means remove one item only
+				this.matrix.monitoredFeedbacks.splice(feedbackIndex, 1) // 2nd parameter means remove one item only
 			}
 		},
 	}

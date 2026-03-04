@@ -9,7 +9,7 @@ export function getPresets() {
 	const ColorRed = combineRgb(200, 0, 0)
 
 	// Mute Inputs
-	for (let index = 0; index < this.model.numberOfInputs; index++) {
+	for (let index = 0; index < this.matrix.model.numberOfInputs; index++) {
 		presets.push({
 			type: 'button',
 			category: 'Mute Input',
@@ -63,7 +63,7 @@ export function getPresets() {
 	}
 
 	// Mute Zones
-	for (let index = 0; index < this.model.numberOfZones; index++) {
+	for (let index = 0; index < this.matrix.model.numberOfZones; index++) {
 		presets.push({
 			type: 'button',
 			category: 'Mute Zones',
@@ -117,7 +117,7 @@ export function getPresets() {
 	}
 
 	// Mute Control Groups
-	for (let index = 0; index < this.model.numberOfControlGroups; index++) {
+	for (let index = 0; index < this.matrix.model.numberOfControlGroups; index++) {
 		presets.push({
 			type: 'button',
 			category: 'Mute Control Groups',
@@ -171,8 +171,8 @@ export function getPresets() {
 	}
 
 	// Mute input to Zone
-	for (let input = 0; input < this.model.numberOfInputs; input++) {
-		for (let zone = 0; zone < this.model.numberOfZones; zone++) {
+	for (let input = 0; input < this.matrix.model.numberOfInputs; input++) {
+		for (let zone = 0; zone < this.matrix.model.numberOfZones; zone++) {
 			presets.push({
 				type: 'button',
 				category: `Mute Input ${parseInt(input) + 1} to Zone`,

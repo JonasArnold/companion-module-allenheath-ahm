@@ -1,5 +1,6 @@
 import * as Helpers from './helpers.js'
 import * as Constants from './constants.js'
+import { asyncSleep } from './utils/sleep.js'
 
 const PRESET_COUNT = 500
 const PLAYBACK_COUNT = 127
@@ -110,14 +111,14 @@ export function getActions() {
 		let buffers = [
 			Buffer.from([typeCodeSetLevel, 0x63, chNumber, typeCodeSetLevel, 0x62, 0x17, typeCodeSetLevel, 0x06, levelDec]),
 		]
-		this.sendCommand(buffers)
+		this.matrix.sendCommand(buffers)
 
 		// wait until device has processed first command and then send "Get Channel Level" command so the response triggers the variable to be updated
-		await this.sleep(150)
+		await asyncSleep(150)
 		buffers = [
 			Buffer.from([0xf0, 0x00, 0x00, 0x1a, 0x50, 0x12, 0x01, 0x00, typeCodeGetLevel, 0x01, 0x0b, 0x17, chNumber, 0xf7]),
 		]
-		this.sendCommand(buffers)
+		this.matrix.sendCommand(buffers)
 	}
 
 	this.incDecLevelCallback = async (action, type) => {
@@ -143,14 +144,14 @@ export function getActions() {
 				incdecSelector,
 			]),
 		]
-		this.sendCommand(buffers)
+		this.matrix.sendCommand(buffers)
 
 		// wait until device has processed first command and then send "Get Channel Level" command so the response triggers the variable to be updated
-		await this.sleep(150)
+		await asyncSleep(150)
 		buffers = [
 			Buffer.from([0xf0, 0x00, 0x00, 0x1a, 0x50, 0x12, 0x01, 0x00, typeCodeGetLevel, 0x01, 0x0b, 0x17, chNumber, 0xf7]),
 		]
-		this.sendCommand(buffers)
+		this.matrix.sendCommand(buffers)
 	}
 
 	this.incDecSendLevelCallback = async (action, type) => {
@@ -184,33 +185,33 @@ export function getActions() {
 			]),
 		]
 
-		this.sendCommand(buffers)
+		this.matrix.sendCommand(buffers)
 	}
 
 	actions['mute_input'] = {
 		name: 'Mute Input',
-		options: this.muteOptions('Input', this.model.numberOfInputs, -1),
+		options: this.muteOptions('Input', this.matrix.model.numberOfInputs, -1),
 		callback: (action) => {
 			let inputNumber = parseInt(action.options.mute_number)
 
 			let buffers = [Buffer.from([0x90, inputNumber, action.options.mute ? 0x7f : 0x3f, 0x90, inputNumber, 0])]
 
-			this.sendCommand(buffers)
-			this.inputsMute[inputNumber] = action.options.mute ? 1 : 0
+			this.matrix.sendCommand(buffers)
+			this.matrix.inputsMute[inputNumber] = action.options.mute ? 1 : 0
 			this.checkFeedbacks('inputMute')
 		},
 	}
 
 	actions['mute_zone'] = {
 		name: 'Mute Zone',
-		options: this.muteOptions('Zone', this.model.numberOfInputs, -1),
+		options: this.muteOptions('Zone', this.matrix.model.numberOfInputs, -1),
 		callback: (action) => {
 			let zoneNumber = parseInt(action.options.mute_number)
 
 			let buffers = [Buffer.from([0x91, zoneNumber, action.options.mute ? 0x7f : 0x3f, 0x91, zoneNumber, 0])]
 
-			this.sendCommand(buffers)
-			this.zonesMute[zoneNumber] = action.options.mute ? 1 : 0
+			this.matrix.sendCommand(buffers)
+			this.matrix.zonesMute[zoneNumber] = action.options.mute ? 1 : 0
 			this.checkFeedbacks('zoneMute')
 		},
 	}
@@ -229,7 +230,7 @@ export function getActions() {
 					presetNumber,
 				]),
 			]
-			this.sendCommand(buffers)
+			this.matrix.sendCommand(buffers)
 		},
 	}
 
@@ -248,14 +249,14 @@ export function getActions() {
 				Buffer.from([0xf0, 0x00, 0x00, 0x1a, 0x50, 0x12, 0x01, 0x00, 0x00, 0x06, playbackChannel, trackNumber, 0xf7]),
 			]
 
-			this.sendCommand(buffers)
+			this.matrix.sendCommand(buffers)
 		},
 	}
 
 	actions['input_to_zone'] = {
 		name: 'Mute Input to Zone',
-		options: this.muteOptions('Input', this.model.numberOfInputs, -1).concat(
-			this.listOptions('Zone', this.model.numberOfZones, -1),
+		options: this.muteOptions('Input', this.matrix.model.numberOfInputs, -1).concat(
+			this.listOptions('Zone', this.matrix.model.numberOfZones, -1),
 		),
 		callback: (action) => {
 			let inputNumber = parseInt(action.options.mute_number)
@@ -280,10 +281,10 @@ export function getActions() {
 					0xf7,
 				]),
 			]
-			this.sendCommand(buffers)
+			this.matrix.sendCommand(buffers)
 
 			// manually update internal state, (internal state works with user-number, hence + 1)
-			this.updateSendMuteState(
+			this.matrix.updateSendMuteState(
 				Constants.SendType.InputToZone,
 				inputNumber + 1,
 				zoneNumber + 1,
@@ -296,7 +297,7 @@ export function getActions() {
 
 	actions['set_level_input'] = {
 		name: 'Set Level of Input',
-		options: this.setLevelOptions('Input', this.model.numberOfInputs, -1),
+		options: this.setLevelOptions('Input', this.matrix.model.numberOfInputs, -1),
 		callback: async (action) => {
 			this.setLevelCallback(action, Constants.ChannelType.Input)
 		},
@@ -304,7 +305,7 @@ export function getActions() {
 
 	actions['inc_dec_level_input'] = {
 		name: 'Increment/Decrement Level of Input',
-		options: this.incDecOptions('Input', this.model.numberOfInputs, -1),
+		options: this.incDecOptions('Input', this.matrix.model.numberOfInputs, -1),
 		callback: async (action) => {
 			this.incDecLevelCallback(action, Constants.ChannelType.Input)
 		},
@@ -312,7 +313,7 @@ export function getActions() {
 
 	actions['set_level_zone'] = {
 		name: 'Set Level of Zone',
-		options: this.setLevelOptions('Zone', this.model.numberOfZones, -1),
+		options: this.setLevelOptions('Zone', this.matrix.model.numberOfZones, -1),
 		callback: async (action) => {
 			this.setLevelCallback(action, Constants.ChannelType.Zone)
 		},
@@ -320,7 +321,7 @@ export function getActions() {
 
 	actions['inc_dec_level_zone'] = {
 		name: 'Increment/Decrement Level of Zone',
-		options: this.incDecOptions('Zone', this.model.numberOfZones, -1),
+		options: this.incDecOptions('Zone', this.matrix.model.numberOfZones, -1),
 		callback: async (action) => {
 			this.incDecLevelCallback(action, Constants.ChannelType.Zone)
 		},
@@ -328,8 +329,8 @@ export function getActions() {
 
 	actions['inc_dec_in_zn_send_level'] = {
 		name: 'Increment/Decrement Input to Zone Send Level',
-		options: this.incDecOptions('Input', this.model.numberOfInputs, -1).concat(
-			this.listOptions('Zone', this.model.numberOfZones, -1),
+		options: this.incDecOptions('Input', this.matrix.model.numberOfInputs, -1).concat(
+			this.listOptions('Zone', this.matrix.model.numberOfZones, -1),
 		),
 		callback: async (action) => {
 			this.incDecSendLevelCallback(action, Constants.SendType.InputToZone)
@@ -338,8 +339,8 @@ export function getActions() {
 
 	actions['inc_dec_zn_zn_send_level'] = {
 		name: 'Increment/Decrement Zone to Zone Send Level',
-		options: this.incDecOptions('Zone', this.model.numberOfZones, -1).concat(
-			this.listOptions('Zone', this.model.numberOfZones, -1),
+		options: this.incDecOptions('Zone', this.matrix.model.numberOfZones, -1).concat(
+			this.listOptions('Zone', this.matrix.model.numberOfZones, -1),
 		),
 		callback: async (action) => {
 			this.incDecSendLevelCallback(action, Constants.SendType.ZoneToZone)
@@ -349,7 +350,7 @@ export function getActions() {
 	// Control Group actions
 	actions['set_level_controlgroup'] = {
 		name: 'Set Level of Control Group',
-		options: this.setLevelOptions('Control Group', this.model.numberOfControlGroups, -1),
+		options: this.setLevelOptions('Control Group', this.matrix.model.numberOfControlGroups, -1),
 		callback: async (action) => {
 			this.setLevelCallback(action, Constants.ChannelType.ControlGroup)
 		},
@@ -357,7 +358,7 @@ export function getActions() {
 
 	actions['inc_dec_level_controlgroup'] = {
 		name: 'Increment/Decrement Level of Control Group',
-		options: this.incDecOptions('Control Group', this.model.numberOfControlGroups, -1),
+		options: this.incDecOptions('Control Group', this.matrix.model.numberOfControlGroups, -1),
 		callback: async (action) => {
 			this.incDecLevelCallback(action, Constants.ChannelType.ControlGroup)
 		},
@@ -365,14 +366,14 @@ export function getActions() {
 
 	actions['mute_controlgroup'] = {
 		name: 'Mute Control Group',
-		options: this.muteOptions('Control Group', this.model.numberOfControlGroups, -1),
+		options: this.muteOptions('Control Group', this.matrix.model.numberOfControlGroups, -1),
 		callback: (action) => {
 			let cgNumber = parseInt(action.options.mute_number)
 
 			let buffers = [Buffer.from([0x92, cgNumber, action.options.mute ? 0x7f : 0x3f, 0x92, cgNumber, 0])]
 
-			this.sendCommand(buffers)
-			this.controlgroupsMute[cgNumber] = action.options.mute ? 1 : 0
+			this.matrix.sendCommand(buffers)
+			this.matrix.controlgroupsMute[cgNumber] = action.options.mute ? 1 : 0
 			this.checkFeedbacks('cgMute')
 		},
 	}

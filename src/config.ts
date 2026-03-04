@@ -1,11 +1,19 @@
 import { Regex } from '@companion-module/base'
 import type { SomeCompanionConfigField } from '@companion-module/base'
-import { DEFAULT_MODEL_ID, getAHMModelChoices, isAHMModelId } from './models.js'
+import { DEFAULT_MODEL_ID, getAHMModelChoices, isAHMModelId } from './matrix/models.js'
 
 export interface AHMConfig {
 	host: string
 	ahm_type: 'ahm16' | 'ahm32' | 'ahm64'
 	fetch_variables_on_startup: boolean
+}
+
+export function noConnectionConfig(): AHMConfig {
+	return {
+		host: '',
+		ahm_type: DEFAULT_MODEL_ID,
+		fetch_variables_on_startup: true,
+	}
 }
 
 export function getConfigFields(): SomeCompanionConfigField[] {
@@ -21,7 +29,7 @@ export function getConfigFields(): SomeCompanionConfigField[] {
 		{
 			type: 'dropdown',
 			id: 'ahm_type',
-			label: 'Type of Device (Re-enable required after change)',
+			label: 'Variant of Device',
 			tooltip: 'Select the variant of the AHM that is connected. Amount of Inputs and Zones will be altered accordingly.',
 			width: 6,
 			choices: getAHMModelChoices(),
@@ -40,7 +48,7 @@ export function getConfigFields(): SomeCompanionConfigField[] {
 
 export function normalizeConfig(config: Partial<AHMConfig> | undefined): AHMConfig {
 	const normalizedConfig: AHMConfig = {
-		host: config?.host ?? '',
+		host: config?.host ?? noConnectionConfig().host,
 		ahm_type: isAHMModelId(config?.ahm_type) ? config.ahm_type : DEFAULT_MODEL_ID,
 		fetch_variables_on_startup: config?.fetch_variables_on_startup !== false,
 	}
