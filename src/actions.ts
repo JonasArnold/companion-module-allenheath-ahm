@@ -189,7 +189,7 @@ export function getActions() {
 
 	actions['mute_input'] = {
 		name: 'Mute Input',
-		options: this.muteOptions('Input', this.numberOfInputs, -1),
+		options: this.muteOptions('Input', this.model.numberOfInputs, -1),
 		callback: (action) => {
 			let inputNumber = parseInt(action.options.mute_number)
 
@@ -203,7 +203,7 @@ export function getActions() {
 
 	actions['mute_zone'] = {
 		name: 'Mute Zone',
-		options: this.muteOptions('Zone', this.numberOfInputs, -1),
+		options: this.muteOptions('Zone', this.model.numberOfInputs, -1),
 		callback: (action) => {
 			let zoneNumber = parseInt(action.options.mute_number)
 
@@ -254,8 +254,8 @@ export function getActions() {
 
 	actions['input_to_zone'] = {
 		name: 'Mute Input to Zone',
-		options: this.muteOptions('Input', this.numberOfInputs, -1).concat(
-			this.listOptions('Zone', this.numberOfZones, -1),
+		options: this.muteOptions('Input', this.model.numberOfInputs, -1).concat(
+			this.listOptions('Zone', this.model.numberOfZones, -1),
 		),
 		callback: (action) => {
 			let inputNumber = parseInt(action.options.mute_number)
@@ -296,7 +296,7 @@ export function getActions() {
 
 	actions['set_level_input'] = {
 		name: 'Set Level of Input',
-		options: this.setLevelOptions('Input', this.numberOfInputs, -1),
+		options: this.setLevelOptions('Input', this.model.numberOfInputs, -1),
 		callback: async (action) => {
 			this.setLevelCallback(action, Constants.ChannelType.Input)
 		},
@@ -304,7 +304,7 @@ export function getActions() {
 
 	actions['inc_dec_level_input'] = {
 		name: 'Increment/Decrement Level of Input',
-		options: this.incDecOptions('Input', this.numberOfInputs, -1),
+		options: this.incDecOptions('Input', this.model.numberOfInputs, -1),
 		callback: async (action) => {
 			this.incDecLevelCallback(action, Constants.ChannelType.Input)
 		},
@@ -312,7 +312,7 @@ export function getActions() {
 
 	actions['set_level_zone'] = {
 		name: 'Set Level of Zone',
-		options: this.setLevelOptions('Zone', this.numberOfZones, -1),
+		options: this.setLevelOptions('Zone', this.model.numberOfZones, -1),
 		callback: async (action) => {
 			this.setLevelCallback(action, Constants.ChannelType.Zone)
 		},
@@ -320,7 +320,7 @@ export function getActions() {
 
 	actions['inc_dec_level_zone'] = {
 		name: 'Increment/Decrement Level of Zone',
-		options: this.incDecOptions('Zone', this.numberOfZones, -1),
+		options: this.incDecOptions('Zone', this.model.numberOfZones, -1),
 		callback: async (action) => {
 			this.incDecLevelCallback(action, Constants.ChannelType.Zone)
 		},
@@ -328,8 +328,8 @@ export function getActions() {
 
 	actions['inc_dec_in_zn_send_level'] = {
 		name: 'Increment/Decrement Input to Zone Send Level',
-		options: this.incDecOptions('Input', this.numberOfInputs, -1).concat(
-			this.listOptions('Zone', this.numberOfZones, -1),
+		options: this.incDecOptions('Input', this.model.numberOfInputs, -1).concat(
+			this.listOptions('Zone', this.model.numberOfZones, -1),
 		),
 		callback: async (action) => {
 			this.incDecSendLevelCallback(action, Constants.SendType.InputToZone)
@@ -338,8 +338,8 @@ export function getActions() {
 
 	actions['inc_dec_zn_zn_send_level'] = {
 		name: 'Increment/Decrement Zone to Zone Send Level',
-		options: this.incDecOptions('Zone', this.numberOfZones, -1).concat(
-			this.listOptions('Zone', this.numberOfZones, -1),
+		options: this.incDecOptions('Zone', this.model.numberOfZones, -1).concat(
+			this.listOptions('Zone', this.model.numberOfZones, -1),
 		),
 		callback: async (action) => {
 			this.incDecSendLevelCallback(action, Constants.SendType.ZoneToZone)
@@ -349,7 +349,7 @@ export function getActions() {
 	// Control Group actions
 	actions['set_level_controlgroup'] = {
 		name: 'Set Level of Control Group',
-		options: this.setLevelOptions('Control Group', this.numberOfControlGroups, -1),
+		options: this.setLevelOptions('Control Group', this.model.numberOfControlGroups, -1),
 		callback: async (action) => {
 			this.setLevelCallback(action, Constants.ChannelType.ControlGroup)
 		},
@@ -357,7 +357,7 @@ export function getActions() {
 
 	actions['inc_dec_level_controlgroup'] = {
 		name: 'Increment/Decrement Level of Control Group',
-		options: this.incDecOptions('Control Group', this.numberOfControlGroups, -1),
+		options: this.incDecOptions('Control Group', this.model.numberOfControlGroups, -1),
 		callback: async (action) => {
 			this.incDecLevelCallback(action, Constants.ChannelType.ControlGroup)
 		},
@@ -365,7 +365,7 @@ export function getActions() {
 
 	actions['mute_controlgroup'] = {
 		name: 'Mute Control Group',
-		options: this.muteOptions('Control Group', this.numberOfControlGroups, -1),
+		options: this.muteOptions('Control Group', this.model.numberOfControlGroups, -1),
 		callback: (action) => {
 			let cgNumber = parseInt(action.options.mute_number)
 

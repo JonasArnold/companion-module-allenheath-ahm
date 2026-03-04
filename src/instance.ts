@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { InstanceBase, Regex, InstanceStatus, TCPHelper } from '@companion-module/base'
+import { InstanceBase, InstanceStatus, TCPHelper } from '@companion-module/base'
 import { getActions } from './actions.js'
 import { getPresets } from './presets.js'
 import { getVariables } from './variables.js'
@@ -10,20 +10,19 @@ import * as Helpers from './helpers.js'
 import { MidiTokenizer } from './midi/tokenize/tokenizer.js'
 import { ChannelParser } from './midi/parse/channel-parser.js'
 import { parseMidi } from './midi/parse/parse-midi.js'
+import { getConfigFields as getModuleConfigFields, normalizeConfig, type AHMConfig } from './config.js'
+import { getAHMModel } from './models.js'
 
 const MIDI_PORT = 51325
 const TIME_BETW_MULTIPLE_REQ_MS = 150
 
-export class AHMInstance extends InstanceBase<any> {
+export class AHMInstance extends InstanceBase<AHMConfig> {
 	constructor(internal) {
 		super(internal)
 		this.midiSocket = undefined
 		this.tokenizer = undefined
 		this.midiParser = undefined
-
-		this.numberOfInputs = 64
-		this.numberOfZones = 64
-		this.numberOfControlGroups = 32
+		this.model = getAHMModel('ahm64')
 
 		this.inputsMute = []
 		this.inputsToZonesMute = []
@@ -33,17 +32,16 @@ export class AHMInstance extends InstanceBase<any> {
 	}
 
 	async init(config) {
-		this.config = config
+		this.config = normalizeConfig(config)
 
 		this.updateStatus(InstanceStatus.Connecting)
 
-		// initialize according to ahm type
-		this.initUnitType()
+		this.applyModelFromConfig()
 
-		this.inputsMute = this.createArray(this.numberOfInputs)
+		this.inputsMute = this.createArray(this.model.numberOfInputs)
 		this.inputsToZonesMute = []
-		this.zonesMute = this.createArray(this.numberOfZones)
-		this.controlgroupsMute = this.createArray(this.numberOfControlGroups)
+		this.zonesMute = this.createArray(this.model.numberOfZones)
+		this.controlgroupsMute = this.createArray(this.model.numberOfControlGroups)
 		this.monitoredFeedbacks = []
 
 		this.initActions()
@@ -60,58 +58,21 @@ export class AHMInstance extends InstanceBase<any> {
 		this.log('debug', 'destroy')
 	}
 
-	initUnitType() {
-		switch (this.config.ahm_type) {
-			case 'ahm16':
-				this.log('info', 'Set Unit Type to AHM-16.')
-				this.numberOfInputs = 16
-				this.numberOfZones = 16
-				this.numberOfControlGroups = 32
-				break
-			case 'ahm32':
-				this.log('info', 'Set Unit Type to AHM-32.')
-				this.numberOfInputs = 32
-				this.numberOfZones = 32
-				this.numberOfControlGroups = 32
-				break
-			case 'ahm64':
-			default:
-				this.log('info', 'Set Unit Type to AHM-64.')
-				break
-		}
+	applyModelFromConfig() {
+		this.model = getAHMModel(this.config.ahm_type)
+		this.log('info', `Set Unit Type to ${this.model.label}.`)
 	}
 
 	async configUpdated(config) {
-		this.config = config
-		this.initUnitType()
+		this.config = normalizeConfig(config)
+		this.applyModelFromConfig()
 		this.initActions()
 		this.initVariables()
 		this.initTCP()
 	}
 
 	getConfigFields() {
-		return [
-			{
-				type: 'textinput',
-				id: 'host',
-				label: 'Device IP',
-				width: 6,
-				default: '',
-				regex: Regex.IP,
-			},
-			{
-				type: 'dropdown',
-				id: 'ahm_type',
-				label: 'Type of Device (Re-enable required after change)',
-				width: 6,
-				choices: [
-					{ id: 'ahm64', label: 'AHM-64' },
-					{ id: 'ahm32', label: 'AHM-32' },
-					{ id: 'ahm16', label: 'AHM-16' },
-				],
-				default: 'ahm64',
-			},
-		]
+		return getModuleConfigFields()
 	}
 
 	initVariables() {
@@ -158,35 +119,35 @@ export class AHMInstance extends InstanceBase<any> {
 		return new Promise((resolve) => setTimeout(resolve, ms))
 	}
 
-	async updateLevelVariables() {
-		for (let index = 1; index <= this.numberOfInputs; index++) {
-			this.requestLevelInfo(Constants.ChannelType.Input, index)
-			await this.sleep(TIME_BETW_MULTIPLE_REQ_MS)
-		}
-	}
-
 	async performReadoutAfterConnected() {
+		const fetchVariablesOnStartup = this.config.fetch_variables_on_startup
 		await this.pollAllMonitoredFeedbacks()
 
-		for (let index = 1; index <= this.numberOfInputs; index++) {
+		for (let index = 1; index <= this.model.numberOfInputs; index++) {
 			this.requestMuteInfo(Constants.ChannelType.Input, index)
 			await this.sleep(TIME_BETW_MULTIPLE_REQ_MS)
-			this.requestLevelInfo(Constants.ChannelType.Input, index)
-			await this.sleep(TIME_BETW_MULTIPLE_REQ_MS)
+			if (fetchVariablesOnStartup) {
+				this.requestLevelInfo(Constants.ChannelType.Input, index)
+				await this.sleep(TIME_BETW_MULTIPLE_REQ_MS)
+			}
 		}
 
-		for (let index = 1; index <= this.numberOfZones; index++) {
+		for (let index = 1; index <= this.model.numberOfZones; index++) {
 			this.requestMuteInfo(Constants.ChannelType.Zone, index)
 			await this.sleep(TIME_BETW_MULTIPLE_REQ_MS)
-			this.requestLevelInfo(Constants.ChannelType.Zone, index)
-			await this.sleep(TIME_BETW_MULTIPLE_REQ_MS)
+			if (fetchVariablesOnStartup) {
+				this.requestLevelInfo(Constants.ChannelType.Zone, index)
+				await this.sleep(TIME_BETW_MULTIPLE_REQ_MS)
+			}
 		}
 
-		for (let index = 1; index <= this.numberOfControlGroups; index++) {
+		for (let index = 1; index <= this.model.numberOfControlGroups; index++) {
 			this.requestMuteInfo(Constants.ChannelType.ControlGroup, index)
 			await this.sleep(TIME_BETW_MULTIPLE_REQ_MS)
-			this.requestLevelInfo(Constants.ChannelType.ControlGroup, index)
-			await this.sleep(TIME_BETW_MULTIPLE_REQ_MS)
+			if (fetchVariablesOnStartup) {
+				this.requestLevelInfo(Constants.ChannelType.ControlGroup, index)
+				await this.sleep(TIME_BETW_MULTIPLE_REQ_MS)
+			}
 		}
 	}
 
@@ -339,7 +300,7 @@ export class AHMInstance extends InstanceBase<any> {
 		switch (sendType) {
 			case Constants.SendType.InputToZone:
 				if (!Array.isArray(this.inputsToZonesMute[channelNumber])) {
-					this.inputsToZonesMute[channelNumber] = new Array(this.numberOfZones + 1).fill(0)
+					this.inputsToZonesMute[channelNumber] = new Array(this.model.numberOfZones + 1).fill(0)
 				}
 
 				if (typeof this.inputsToZonesMute[channelNumber][sendChannelNumber] === 'undefined') {

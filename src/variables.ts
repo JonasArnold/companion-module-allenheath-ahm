@@ -5,7 +5,7 @@ export function getVariables() {
 	const variableInitValuesArray = []
 
 	// generate input level variables
-	let unitInAmount = this.numberOfInputs
+	let unitInAmount = this.model.numberOfInputs
 	for (let i = 1; i <= unitInAmount; i++) {
 		let varId = Helpers.getVarNameInputLevel(i)
 		variableDefinitions.push({
@@ -19,7 +19,7 @@ export function getVariables() {
 	}
 
 	// generate zone level variables
-	let unitZoneAmount = this.numberOfZones
+	let unitZoneAmount = this.model.numberOfZones
 	for (let i = 1; i <= unitZoneAmount; i++) {
 		let varId = Helpers.getVarNameZoneLevel(i)
 		variableDefinitions.push({
@@ -33,7 +33,7 @@ export function getVariables() {
 	}
 
 	// generate control group level variables
-	let unitControlGroupAmount = this.numberOfControlGroups
+	let unitControlGroupAmount = this.model.numberOfControlGroups
 	for (let i = 1; i <= unitControlGroupAmount; i++) {
 		let varId = Helpers.getVarNameCGLevel(i)
 		variableDefinitions.push({
