@@ -11,9 +11,11 @@ export interface ChannelParserEvents {
 
 export class ChannelParser extends EventEmitter<ChannelParserEvents> {
 	#gen: Generator<void, void, number[]>
+	#verboseLog: (msg: string) => void
 
 	constructor(verboseLog: (msg: string) => void) {
 		super()
+		this.#verboseLog = verboseLog
 		this.#gen = this.#parseMessages(verboseLog)
 		this.#gen.next()
 	}
@@ -55,7 +57,7 @@ export class ChannelParser extends EventEmitter<ChannelParserEvents> {
 		const input = message[10] + 1
 		const zone = message[12] + 1
 		const muted = muteByte === 0x7f
-		console.log(`[PARSE] send_mute input=${input} zone=${zone} muted=${muted}`)
+		this.#verboseLog(`[PARSE] send_mute input=${input} zone=${zone} muted=${muted}`)
 		this.emit('send_mute', input, zone, muted)
 	}
 
@@ -85,15 +87,15 @@ export class ChannelParser extends EventEmitter<ChannelParserEvents> {
 
 				switch (status) {
 					case 0x90:
-						console.log(`[PARSE] input_mute channel=${channel + 1} muted=${muted}`)
+						verboseLog(`[PARSE] input_mute channel=${channel + 1} muted=${muted}`)
 						this.emit('input_mute', channel, muted)
 						break
 					case 0x91:
-						console.log(`[PARSE] zone_mute channel=${channel + 1} muted=${muted}`)
+						verboseLog(`[PARSE] zone_mute channel=${channel + 1} muted=${muted}`)
 						this.emit('zone_mute', channel, muted)
 						break
 					case 0x92:
-						console.log(`[PARSE] controlgroup_mute channel=${channel + 1} muted=${muted}`)
+						verboseLog(`[PARSE] controlgroup_mute channel=${channel + 1} muted=${muted}`)
 						this.emit('controlgroup_mute', channel, muted)
 						break
 				}
@@ -107,7 +109,7 @@ export class ChannelParser extends EventEmitter<ChannelParserEvents> {
 				if (first.length >= 7) {
 					const channel = first[2] + 1
 					const level = first[6]
-					console.log(`[PARSE] level_changed type=${channelType} channel=${channel} level=${level}`)
+					verboseLog(`[PARSE] level_changed type=${channelType} channel=${channel} level=${level}`)
 					this.emit('level_changed', channelType, channel, level)
 					continue read_message
 				}
@@ -129,7 +131,7 @@ export class ChannelParser extends EventEmitter<ChannelParserEvents> {
 
 					const channel = first[2] + 1
 					const level = third[2]
-					console.log(`[PARSE] level_changed type=${channelType} channel=${channel} level=${level}`)
+					verboseLog(`[PARSE] level_changed type=${channelType} channel=${channel} level=${level}`)
 					this.emit('level_changed', channelType, channel, level)
 					continue read_message
 				}

@@ -119,7 +119,7 @@ export class MidiTokenizer extends EventEmitter<MidiMessageEvents> implements To
 
 		const receivedData: number[] = []
 
-		const reader = await SocketReader.create(socket, receivedData)
+		const reader = await SocketReader.create(socket, receivedData, verboseLog)
 
 		next_status: for (;;) {
 			// Find the first status byte.
@@ -133,7 +133,7 @@ export class MidiTokenizer extends EventEmitter<MidiMessageEvents> implements To
 					}
 
 					if (0xf8 <= b) {
-						console.log(`[TOKENIZER] system_realtime ${prettyByte(b)}`)
+						verboseLog(`[TOKENIZER] system_realtime ${prettyByte(b)}`)
 						this.emit('system_realtime', b)
 						continue
 					}
@@ -185,14 +185,14 @@ export class MidiTokenizer extends EventEmitter<MidiMessageEvents> implements To
 									}
 
 									if (0xf8 <= b) {
-										console.log(`[TOKENIZER] system_realtime ${prettyByte(b)}`)
+										verboseLog(`[TOKENIZER] system_realtime ${prettyByte(b)}`)
 										this.emit('system_realtime', b)
 										continue
 									}
 
 									receivedData.splice(0, i + 1)
 									systemMessage.push(0xf7)
-									console.log(`[TOKENIZER] system_exclusive ${prettyBytes(systemMessage)}`)
+									verboseLog(`[TOKENIZER] system_exclusive ${prettyBytes(systemMessage)}`)
 									this.emit('system_exclusive', systemMessage)
 									continue next_status
 								}
@@ -248,7 +248,7 @@ export class MidiTokenizer extends EventEmitter<MidiMessageEvents> implements To
 							}
 
 							this.emit('system_realtime', b)
-							console.log(`[TOKENIZER] system_realtime ${prettyByte(b)}`)
+							verboseLog(`[TOKENIZER] system_realtime ${prettyByte(b)}`)
 						}
 
 						receivedData.length = 0
@@ -258,7 +258,7 @@ export class MidiTokenizer extends EventEmitter<MidiMessageEvents> implements To
 						}
 					}
 
-					console.log(`[TOKENIZER] system_common ${prettyBytes(systemMessage)}`)
+					verboseLog(`[TOKENIZER] system_common ${prettyBytes(systemMessage)}`)
 					this.emit('system_common', systemMessage)
 					continue next_status
 				}
@@ -283,7 +283,7 @@ export class MidiTokenizer extends EventEmitter<MidiMessageEvents> implements To
 						}
 
 						this.emit('system_realtime', b)
-						console.log(`[TOKENIZER] system_realtime ${prettyByte(b)}`)
+						verboseLog(`[TOKENIZER] system_realtime ${prettyByte(b)}`)
 					}
 
 					receivedData.length = 0
@@ -293,7 +293,7 @@ export class MidiTokenizer extends EventEmitter<MidiMessageEvents> implements To
 					}
 				}
 
-				console.log(`[TOKENIZER] channel_message ${prettyBytes(reply)}`)
+				verboseLog(`[TOKENIZER] channel_message ${prettyBytes(reply)}`)
 				this.emit('channel_message', reply)
 			}
 		}

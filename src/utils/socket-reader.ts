@@ -4,8 +4,8 @@ import { type TCPHelper } from '@companion-module/base'
 export class SocketReader {
 	readonly #gen: AsyncGenerator<void, void, void>
 
-	static async create(source: TCPHelper, out: number[]): Promise<SocketReader> {
-		const reader = new SocketReader(source, out)
+	static async create(source: TCPHelper, out: number[], verboseLog: (msg: string) => void): Promise<SocketReader> {
+		const reader = new SocketReader(source, out, verboseLog)
 		await reader.#gen.next()
 		return reader
 	}
@@ -15,11 +15,15 @@ export class SocketReader {
 		return !done
 	}
 
-	private constructor(source: TCPHelper, data: number[]) {
-		this.#gen = SocketReader.#createReader(source, data)
+	private constructor(source: TCPHelper, data: number[], verboseLog: (msg: string) => void) {
+		this.#gen = SocketReader.#createReader(source, data, verboseLog)
 	}
 
-	static async *#createReader(source: TCPHelper, receivedData: number[]): AsyncGenerator<void, void, void> {
+	static async *#createReader(
+		source: TCPHelper,
+		receivedData: number[],
+		verboseLog: (msg: string) => void,
+	): AsyncGenerator<void, void, void> {
 		const socketClosed = new Promise<boolean>((resolve: (more: boolean) => void, _reject: (reason: Error) => void) => {
 			const stop = () => {
 				resolve(false)
@@ -31,7 +35,7 @@ export class SocketReader {
 		let dataAvailable = (async function readMore() {
 			return new Promise<boolean>((resolve: (more: boolean) => void) => {
 				source.once('data', (data: Buffer) => {
-					console.log(`[TCP IN] ${data.toString('hex')}`)
+					verboseLog(`[TCP IN] ${data.toString('hex')}`)
 					for (const b of data) receivedData.push(b)
 					resolve(true)
 					dataAvailable = readMore()

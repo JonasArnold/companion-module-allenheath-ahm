@@ -37,20 +37,20 @@ export class AHMInstance extends InstanceBase<any> {
 
 		this.updateStatus(InstanceStatus.Connecting)
 
-		this.numberOfInputs = 64
-		this.numberOfZones = 64
+		// initialize according to ahm type
+		this.initUnitType()
+
 		this.inputsMute = this.createArray(this.numberOfInputs)
 		this.inputsToZonesMute = []
 		this.zonesMute = this.createArray(this.numberOfZones)
 		this.controlgroupsMute = this.createArray(this.numberOfControlGroups)
 		this.monitoredFeedbacks = []
 
-		this.initUnitType()
-		this.initTCP()
 		this.initActions()
 		this.initFeedbacks()
 		this.initPresets()
 		this.initVariables()
+		this.initTCP()
 	}
 
 	async destroy() {
@@ -66,11 +66,13 @@ export class AHMInstance extends InstanceBase<any> {
 				this.log('info', 'Set Unit Type to AHM-16.')
 				this.numberOfInputs = 16
 				this.numberOfZones = 16
+				this.numberOfControlGroups = 32
 				break
 			case 'ahm32':
 				this.log('info', 'Set Unit Type to AHM-32.')
 				this.numberOfInputs = 32
 				this.numberOfZones = 32
+				this.numberOfControlGroups = 32
 				break
 			case 'ahm64':
 			default:
@@ -275,22 +277,26 @@ export class AHMInstance extends InstanceBase<any> {
 		this.midiParser = new ChannelParser((msg) => this.log('debug', msg))
 
 		void parseMidi((msg) => this.log('debug', msg), this.tokenizer, this.midiParser).catch((err) => {
-			this.log('error', `MIDI parsing stopped: ${err instanceof Error ? err.message : String(err)}`)
+			this.log('error', `MIDI parsing stopped: ${err instanceof Error ? `${err.message}\n${err.stack ?? ''}` : String(err)}`)
 		})
 
 		this.midiParser.on('input_mute', (channel, muted) => {
+			this.log('debug', `[INSTANCE] input_mute channel=${channel + 1} muted=${muted}`)
 			this.inputsMute[channel] = muted ? 1 : 0
 			this.checkFeedbacks(FeedbackId.InputMute)
 		})
 		this.midiParser.on('zone_mute', (channel, muted) => {
+			this.log('debug', `[INSTANCE] zone_mute channel=${channel + 1} muted=${muted}`)
 			this.zonesMute[channel] = muted ? 1 : 0
 			this.checkFeedbacks(FeedbackId.ZoneMute)
 		})
 		this.midiParser.on('controlgroup_mute', (channel, muted) => {
+			this.log('debug', `[INSTANCE] controlgroup_mute channel=${channel + 1} muted=${muted}`)
 			this.controlgroupsMute[channel] = muted ? 1 : 0
 			this.checkFeedbacks(FeedbackId.ControlGroupMute)
 		})
 		this.midiParser.on('send_mute', (input, zone, muted) => {
+			this.log('debug', `[INSTANCE] send_mute input=${input} zone=${zone} muted=${muted}`)
 			this.updateSendMuteState(Constants.SendType.InputToZone, input, zone, muted ? 1 : 0)
 			this.checkFeedbacks(FeedbackId.InputToZoneMute)
 		})
