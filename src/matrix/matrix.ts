@@ -8,8 +8,9 @@ import { MidiTokenizer } from '../midi/tokenize/tokenizer.js'
 import { ChannelParser } from '../midi/parse/channel-parser.js'
 import { parseMidi } from '../midi/parse/parse-midi.js'
 import { asyncSleep } from '../utils/sleep.js'
+import { prettyBytes } from '../utils/pretty.js'
 
-const MIDI_PORT = 51325
+const AHM_MIDI_PORT = 51325
 const TIME_BETW_MULTIPLE_REQ_MS = 150
 
 export interface MonitoredFeedbackInfo {
@@ -29,12 +30,10 @@ export class AHMMatrix {
 	inputsMute: number[]
 	inputsToZonesMute: number[][]
 	zonesMute: number[]
-	controlgroupsMute: number[]
+	controlGroupsMute: number[]
 
 	#instance: any
-	#midiSocket?: TCPHelper
-	#tokenizer?: MidiTokenizer
-	#midiParser?: ChannelParser
+	#socket?: TCPHelper
 
 	constructor(instance: any) {
 		this.#instance = instance
@@ -46,7 +45,7 @@ export class AHMMatrix {
 		this.inputsMute = []
 		this.inputsToZonesMute = []
 		this.zonesMute = []
-		this.controlgroupsMute = []
+		this.controlGroupsMute = []
 		this.resetState()
 	}
 
@@ -60,7 +59,25 @@ export class AHMMatrix {
 		this.inputsMute = new Array(this.model.numberOfInputs).fill(0)
 		this.inputsToZonesMute = []
 		this.zonesMute = new Array(this.model.numberOfZones).fill(0)
-		this.controlgroupsMute = new Array(this.model.numberOfControlGroups).fill(0)
+		this.controlGroupsMute = new Array(this.model.numberOfControlGroups).fill(0)
+	}
+
+	/**
+	 * Stop operating the matrix, updating instance status to the given status.
+	 */
+	#stop(status: InstanceStatus, reason: string): void {
+		this.#instance.updateStatus(status, reason)
+
+		this.#instance.updateStatus
+		if (this.#socket) {
+			this.#socket.destroy()
+			this.#socket = undefined
+		}
+	}
+
+	/** Stop operating and disconnect from the matrix. */
+	stop(reason: string): void {
+		this.#stop(InstanceStatus.Disconnected, reason)
 	}
 
 	start(): void {
@@ -71,32 +88,83 @@ export class AHMMatrix {
 
 		this.#stop(InstanceStatus.Connecting, 'Starting matrix connection...')
 
-		this.#midiSocket = new TCPHelper(this.config.host, MIDI_PORT)
-		this.#tokenizer = new MidiTokenizer(this.#midiSocket, (msg) => this.#instance.log('debug', msg))
-		this.#midiParser = new ChannelParser((msg) => this.#instance.log('debug', msg))
+		// create socket
+		const socket = new TCPHelper(this.config.host, AHM_MIDI_PORT)
+		this.#socket = socket
 
-		void parseMidi((msg) => this.#instance.log('debug', msg), this.#tokenizer, this.#midiParser).catch((err) => {
-			const msg = err instanceof Error ? `${err.message}\n${err.stack ?? ''}` : String(err)
-			this.#instance.log('error', `MIDI parsing stopped: ${msg}`)
+		const instance = this.#instance		
+		const fetchVariablesOnStartup = instance.config.fetch_variables_on_startup
+
+		// Socket error handling
+		socket.on('error', (err) => {
+			const errStr = `Error: ${err}`
+			instance.log('error', errStr)
+			this.#stop(InstanceStatus.ConnectionFailure, errStr)
 		})
 
-		this.#midiParser.on('input_mute', (channel, muted) => {
+		// Start processing replies
+		this.#processMatrixReplies(socket).then(
+			() => {
+				const processingComplete = 'Matrix reply processing complete, disconnecting'
+				instance.log('info', processingComplete)
+				this.stop(processingComplete)
+			},
+			(reason: any) => {
+				const err = `Error processing replies: ${reason}`
+				instance.log('error', err)
+				this.#stop(InstanceStatus.ConnectionFailure, err)
+			},
+		)
+
+		// initial actions on connect (processing replies is running)
+		socket.once('connect', () => {
+			instance.log('info', `Connected to ${this.config.host}:${AHM_MIDI_PORT}`)
+			instance.updateStatus(InstanceStatus.Ok)
+
+			void (async () => {
+				// retrieve current state for feedbacks first
+				await this.#retrieveFeedbackStates()
+
+				// optionally fetch current state for variables afterwards
+				if (fetchVariablesOnStartup) {
+					await this.#retrieveVariableStates()
+				}
+			})().catch((err: unknown) => {
+				const errStr = `Error during startup readout: ${String(err)}`
+				instance.log('error', errStr)
+			})
+		})
+	}
+
+	/** Read and process mixer reply messages from `socket`. */
+	async #processMatrixReplies(socket: TCPHelper) {
+		const instance = this.#instance
+
+		const verboseLog = (msg: string) => {
+			// wrapped, so that logging can be controlled from here
+			instance.log('debug', msg)
+		}
+
+		const tokenizer = new MidiTokenizer(socket, verboseLog)
+		const mixerChannelParser = new ChannelParser(verboseLog)
+
+		mixerChannelParser.on('input_mute', (channel, muted) => {
 			this.inputsMute[channel] = muted ? 1 : 0
 			this.#instance.checkFeedbacks(FeedbackId.InputMute)
 		})
-		this.#midiParser.on('zone_mute', (channel, muted) => {
+		mixerChannelParser.on('zone_mute', (channel, muted) => {
 			this.zonesMute[channel] = muted ? 1 : 0
 			this.#instance.checkFeedbacks(FeedbackId.ZoneMute)
 		})
-		this.#midiParser.on('controlgroup_mute', (channel, muted) => {
-			this.controlgroupsMute[channel] = muted ? 1 : 0
+		mixerChannelParser.on('controlgroup_mute', (channel, muted) => {
+			this.controlGroupsMute[channel] = muted ? 1 : 0
 			this.#instance.checkFeedbacks(FeedbackId.ControlGroupMute)
 		})
-		this.#midiParser.on('send_mute', (input, zone, muted) => {
+		mixerChannelParser.on('send_mute', (input, zone, muted) => {
 			this.updateSendMuteState(Constants.SendType.InputToZone, input, zone, muted ? 1 : 0)
 			this.#instance.checkFeedbacks(FeedbackId.InputToZoneMute)
 		})
-		this.#midiParser.on('level_changed', (channelType, channel, level) => {
+		mixerChannelParser.on('level_changed', (channelType, channel, level) => {
 			const levelValue = this.getDbuValue(level)
 			if (channelType === Constants.ChannelType.Input) {
 				this.setVariableValues({ [Helpers.getVarNameInputLevel(channel)]: levelValue })
@@ -107,46 +175,51 @@ export class AHMMatrix {
 			}
 		})
 
-		this.#midiSocket.on('status_change', (status) => {
-			this.#instance.updateStatus(status)
-		})
-		this.#midiSocket.on('error', (err) => {
-			this.#instance.log('error', `Error: ${err.message}`)
-			this.#instance.updateStatus(InstanceStatus.ConnectionFailure)
-		})
-		this.#midiSocket.on('connect', () => {
-			this.#instance.log('debug', `MIDI Connected to ${this.config.host}`)
-			this.#instance.updateStatus(InstanceStatus.Ok)
-			void this.performStartupReadout()
-		})
+		return parseMidi(verboseLog, tokenizer, mixerChannelParser)
 	}
 
-	/**
-	 * Stop operating the matrix, updating instance status to the given status.
-	 */
-	#stop(status: InstanceStatus, reason: string): void {
-		this.#instance.updateStatus(status, reason)
+	async #retrieveFeedbackStates() {
+		await this.pollAllMonitoredFeedbacks()
 
-		this.#instance.updateStatus
-		if (this.#midiSocket) {
-			this.#midiSocket.destroy()
-			this.#midiSocket = undefined
+		for (let index = 1; index <= this.model.numberOfInputs; index++) {
+			this.requestMuteInfo(Constants.ChannelType.Input, index)
+			await asyncSleep(TIME_BETW_MULTIPLE_REQ_MS)
 		}
-		this.#tokenizer = undefined
-		this.#midiParser = undefined
+
+		for (let index = 1; index <= this.model.numberOfZones; index++) {
+			this.requestMuteInfo(Constants.ChannelType.Zone, index)
+			await asyncSleep(TIME_BETW_MULTIPLE_REQ_MS)
+		}
+
+		for (let index = 1; index <= this.model.numberOfControlGroups; index++) {
+			this.requestMuteInfo(Constants.ChannelType.ControlGroup, index)
+			await asyncSleep(TIME_BETW_MULTIPLE_REQ_MS)
+		}
 	}
 
-	/** Stop operating and disconnect from the matrix. */
-	stop(reason: string): void {
-		this.#stop(InstanceStatus.Disconnected, reason)
+	async #retrieveVariableStates() {
+		for (let index = 1; index <= this.model.numberOfInputs; index++) {
+			this.requestLevelInfo(Constants.ChannelType.Input, index)
+			await asyncSleep(TIME_BETW_MULTIPLE_REQ_MS)
+		}
+
+		for (let index = 1; index <= this.model.numberOfZones; index++) {
+			this.requestLevelInfo(Constants.ChannelType.Zone, index)
+			await asyncSleep(TIME_BETW_MULTIPLE_REQ_MS)
+		}
+
+		for (let index = 1; index <= this.model.numberOfControlGroups; index++) {
+			this.requestLevelInfo(Constants.ChannelType.ControlGroup, index)
+			await asyncSleep(TIME_BETW_MULTIPLE_REQ_MS)
+		}
 	}
 
 	sendCommand(buffers: Buffer[]): void {
-		if (buffers.length === 0 || !this.#midiSocket) return
+		if (buffers.length === 0 || !this.#socket) return
 
 		for (const buffer of buffers) {
-			this.#instance.log('debug', `sending ${buffer.toString('hex')} via MIDI TCP @${this.config.host}`)
-			this.#midiSocket.send(buffer)
+			this.#instance.log('debug', `SEND to ${this.config.host}: ${prettyBytes(Array.from(buffer))}`)
+			this.#socket.send(buffer)
 		}
 	}
 
@@ -222,38 +295,6 @@ export class AHMMatrix {
 	setVariableValues(values: Record<string, string | number>): void {
 		this.#instance.log('debug', `Updating variables: ${JSON.stringify(values)} `)
 		this.#instance.setVariableValues(values)
-	}
-
-	async performStartupReadout(): Promise<void> {
-		const fetchVariablesOnStartup = this.#instance.config.fetch_variables_on_startup
-		await this.pollAllMonitoredFeedbacks()
-
-		for (let index = 1; index <= this.model.numberOfInputs; index++) {
-			this.requestMuteInfo(Constants.ChannelType.Input, index)
-			await asyncSleep(TIME_BETW_MULTIPLE_REQ_MS)
-			if (fetchVariablesOnStartup) {
-				this.requestLevelInfo(Constants.ChannelType.Input, index)
-				await asyncSleep(TIME_BETW_MULTIPLE_REQ_MS)
-			}
-		}
-
-		for (let index = 1; index <= this.model.numberOfZones; index++) {
-			this.requestMuteInfo(Constants.ChannelType.Zone, index)
-			await asyncSleep(TIME_BETW_MULTIPLE_REQ_MS)
-			if (fetchVariablesOnStartup) {
-				this.requestLevelInfo(Constants.ChannelType.Zone, index)
-				await asyncSleep(TIME_BETW_MULTIPLE_REQ_MS)
-			}
-		}
-
-		for (let index = 1; index <= this.model.numberOfControlGroups; index++) {
-			this.requestMuteInfo(Constants.ChannelType.ControlGroup, index)
-			await asyncSleep(TIME_BETW_MULTIPLE_REQ_MS)
-			if (fetchVariablesOnStartup) {
-				this.requestLevelInfo(Constants.ChannelType.ControlGroup, index)
-				await asyncSleep(TIME_BETW_MULTIPLE_REQ_MS)
-			}
-		}
 	}
 
 	async pollAllMonitoredFeedbacks(): Promise<void> {

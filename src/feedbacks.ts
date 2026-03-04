@@ -1,6 +1,6 @@
-// @ts-nocheck
 import { combineRgb } from '@companion-module/base'
 import * as Constants from './constants.js'
+import type { MonitoredFeedbackInfo } from './matrix/matrix.js'
 
 export enum FeedbackId {
 	InputMute = 'inputMute',
@@ -17,16 +17,18 @@ export function getFeedbacks() {
 
 	// builds an object containing all relevant information to monitor a feedback of some type
 	this.buildFeedbackMonitoringObject = (feedback) => {
-		let extractedFeedbackInfo = {}
-		extractedFeedbackInfo.id = feedback.id
+		const extractedFeedbackInfo: MonitoredFeedbackInfo = {
+			id: feedback.id,
+			type: Constants.MonitoredFeedbackType.Undefined,
+		}
 		const feedbackDefinitionId = feedback.definitionId ?? feedback.feedbackId
 
 		switch (feedbackDefinitionId) {
 			case FeedbackId.InputToZoneMute:
 				extractedFeedbackInfo.type = Constants.MonitoredFeedbackType.MuteState
 				extractedFeedbackInfo.sendType = Constants.SendType.InputToZone
-				extractedFeedbackInfo.channel = feedback.options.input
-				extractedFeedbackInfo.sendChannel = feedback.options.zone
+				extractedFeedbackInfo.channel = Number.parseInt(feedback.options.input, 10)
+				extractedFeedbackInfo.sendChannel = Number.parseInt(feedback.options.zone, 10)
 				break
 
 			default:
@@ -53,7 +55,7 @@ export function getFeedbacks() {
 			},
 		],
 		callback: (feedback, bank) => {
-			return this.matrix.inputsMute[parseInt(feedback.options.input) - 1] == 1
+			return this.matrix?.inputsMute?.[parseInt(feedback.options.input) - 1] == 1
 		},
 	}
 
@@ -74,7 +76,7 @@ export function getFeedbacks() {
 			},
 		],
 		callback: (feedback, bank) => {
-			return this.matrix.zonesMute[parseInt(feedback.options.zone) - 1] == 1
+			return this.matrix?.zonesMute?.[parseInt(feedback.options.zone) - 1] == 1
 		},
 	}
 
@@ -95,7 +97,7 @@ export function getFeedbacks() {
 			},
 		],
 		callback: (feedback, bank) => {
-			return this.matrix.controlgroupsMute[parseInt(feedback.options.cg) - 1] == 1
+			return this.matrix?.controlGroupsMute?.[parseInt(feedback.options.cg) - 1] == 1
 		},
 	}
 
@@ -122,7 +124,7 @@ export function getFeedbacks() {
 			},
 		],
 		callback: (feedback, bank) => {
-			return this.matrix.inputsToZonesMute[parseInt(feedback.options.input)]?.[parseInt(feedback.options.zone)] == 1
+			return this.matrix?.inputsToZonesMute?.[parseInt(feedback.options.input)]?.[parseInt(feedback.options.zone)] == 1
 		},
 		subscribe: (feedback) => {
 			// add this feedback to the monitored feedbacks

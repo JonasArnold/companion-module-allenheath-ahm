@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { combineRgb } from '@companion-module/base'
 
 export function getPresets() {
@@ -13,10 +12,10 @@ export function getPresets() {
 		presets.push({
 			type: 'button',
 			category: 'Mute Input',
-			name: `Mute Input ${parseInt(index) + 1}`,
+			name: `Mute Input ${index + 1}`,
 			options: {},
 			style: {
-				text: `Mute Input ${parseInt(index) + 1}`,
+				text: `Mute Input ${index + 1}`,
 				size: '14',
 				color: ColorWhite,
 				bgcolor: ColorBlack,
@@ -67,10 +66,10 @@ export function getPresets() {
 		presets.push({
 			type: 'button',
 			category: 'Mute Zones',
-			name: `Mute Zone ${parseInt(index) + 1}`,
+			name: `Mute Zone ${index + 1}`,
 			options: {},
 			style: {
-				text: `Mute Zone ${parseInt(index) + 1}`,
+				text: `Mute Zone ${index + 1}`,
 				size: '14',
 				color: ColorWhite,
 				bgcolor: ColorBlack,
@@ -105,7 +104,7 @@ export function getPresets() {
 				{
 					feedbackId: 'zoneMute',
 					options: {
-						zone: parseInt(index) + 1,
+						zone: index + 1,
 					},
 					style: {
 						color: ColorWhite,
@@ -121,10 +120,10 @@ export function getPresets() {
 		presets.push({
 			type: 'button',
 			category: 'Mute Control Groups',
-			name: `Mute CG ${parseInt(index) + 1}`,
+			name: `Mute CG ${index + 1}`,
 			options: {},
 			style: {
-				text: `Mute Control Group ${parseInt(index) + 1}`,
+				text: `Mute Control Group ${index + 1}`,
 				size: '14',
 				color: ColorWhite,
 				bgcolor: ColorBlack,
@@ -159,7 +158,7 @@ export function getPresets() {
 				{
 					feedbackId: 'cgMute',
 					options: {
-						cg: parseInt(index) + 1,
+						cg: index + 1,
 					},
 					style: {
 						color: ColorWhite,
@@ -175,11 +174,11 @@ export function getPresets() {
 		for (let zone = 0; zone < this.matrix.model.numberOfZones; zone++) {
 			presets.push({
 				type: 'button',
-				category: `Mute Input ${parseInt(input) + 1} to Zone`,
-				name: `Mute Input ${parseInt(input) + 1} to Zone ${parseInt(zone) + 1}`,
+				category: `Mute Input ${input + 1} to Zone`,
+				name: `Mute Input ${input + 1} to Zone ${zone + 1}`,
 				options: {},
 				style: {
-					text: `Mute Input ${parseInt(input) + 1} to Zone ${parseInt(zone) + 1}`,
+					text: `Mute Input ${input + 1} to Zone ${zone + 1}`,
 					size: '14',
 					color: ColorWhite,
 					bgcolor: ColorBlack,
@@ -190,7 +189,7 @@ export function getPresets() {
 							{
 								actionId: 'input_to_zone',
 								options: {
-									mute_number: parseInt(input),
+									mute_number: input,
 									number: zone,
 									mute: true,
 								},
@@ -203,7 +202,7 @@ export function getPresets() {
 							{
 								actionId: 'input_to_zone',
 								options: {
-									mute_number: parseInt(input),
+									mute_number: input,
 									number: zone,
 									mute: false,
 								},
@@ -216,7 +215,7 @@ export function getPresets() {
 					{
 						feedbackId: 'inputToZoneMute',
 						options: {
-							input: parseInt(input) + 1,
+							input: input + 1,
 							zone: zone + 1,
 						},
 						style: {
