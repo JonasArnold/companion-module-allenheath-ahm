@@ -1,4 +1,4 @@
-import { ChannelType, SendInfoType } from '../utility/constants.js'
+import { ChannelType, Priority, SendInfoType } from '../utility/constants.js'
 import { sleep } from '../utility/helpers.js'
 import { requestLevelInfo, requestMuteInfo } from '../formatMIDI/channels.js'
 import { requestSendInfo } from '../formatMIDI/sends.js'
@@ -34,7 +34,7 @@ export function pollStateTimer(getSocket, interval = 10000, state, onError = con
 			]
 
 			for (const req of requests) {
-				socket.queue(req)
+				socket.queue(req, Priority.LOW)
 			}
 		} catch (err) {
 			onError(err)

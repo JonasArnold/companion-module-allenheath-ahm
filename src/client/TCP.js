@@ -1,6 +1,7 @@
 import { TCPHelper, InstanceStatus, InstanceBase } from '@companion-module/base'
 import { parseResponse } from './parseResponse.js'
 import { sleep } from '../utility/helpers.js'
+import { Priority } from '../utility/constants.js'
 
 /**
  * TCP Client factory function. Creates TCP client and handles request queueing, sending, and receiving.
@@ -70,8 +71,13 @@ export function TCPClient({ companion }, state, reqTime, poller) {
 		onDisconnectCallback = cb
 	}
 
-	function queue(buffers) {
-		txQueue.push(buffers)
+	/**
+	 * Queues MIDI packet for sending
+	 * @param {Buffer} buffers 
+	 * @param {Priority} priority - defaults to high unless specified
+	 */
+	function queue(buffers, priority = Priority.HIGH) {
+		txQueue.push({buffers, priority, timestamp: Date.now()})
 
 		startQueue()
 	}
@@ -82,12 +88,18 @@ export function TCPClient({ companion }, state, reqTime, poller) {
 		queueRunning = true
 
 		while (txQueue.length > 0) {
+			txQueue.sort((a, b) => 
+				a.priority !== b.priority
+					? a.priority - b.priority
+					: a.timestamp - b.timestamp
+			)
+
 			console.log('txQueue: ', txQueue)
 			const txBuffer = txQueue.shift()
 			if (!txBuffer) continue
 
 			try {
-				send(txBuffer)
+				send(txBuffer.buffers)
 			} catch (e) {
 				companion.log('error', 'Buffer sending error: ' + e)
 			}

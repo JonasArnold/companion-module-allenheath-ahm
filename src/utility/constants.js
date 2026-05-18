@@ -183,3 +183,15 @@ export const Colors = {
 	Blue: combineRgb(5, 151, 242),
 	Black: combineRgb(0, 0, 0),
 }
+
+/**
+ * Priority for packet sending (user action vs. polling)
+ */
+export const Priority = {
+	HIGH: 0,
+	LOW: 1
+}
+
+/**
+ * @typedef {typeof Priority[keyof typeof Priority]} Priority
+ */
