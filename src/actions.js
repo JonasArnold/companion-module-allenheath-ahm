@@ -4,18 +4,12 @@ import {
 	getChoicesArrayOfKeyValueObject,
 	checkIfValueOfEnum,
 	getChTypeOfSendType,
-	getSendChTypeOfSendType,
-	sleep,
+	getSendChTypeOfSendType
 } from './utility/helpers.js'
 import { dbu_Values, PlaybackChannel, ChannelType, SendType, SendInfoType } from './utility/constants.js'
-import {
-	setLevelCallback,
-	incDecLevelCallback,
-	incDecSendLevelCallback,
-	requestSendInfo,
-	requestLevelInfo,
-	requestMuteInfo,
-} from './utility/formatHexMIDI.js'
+import { setLevelCallback, incDecLevelCallback, requestLevelInfo, requestMuteInfo } from './formatMIDI/channels.js'
+import { requestSendInfo, incDecSendLevelCallback, setInputToZoneMute } from './formatMIDI/sends.js'
+import { setPlaybackTrack } from './formatMIDI/playback.js'
 
 const PRESET_COUNT = 500
 const PLAYBACK_COUNT = 127
@@ -170,11 +164,7 @@ export function getActions(tcpClient, state, numberOfInputs, numberOfZones, { co
 
 			// console.log(`action playback_track: Got Callback with parameters trackNumber: ${action.options.number} and playbackChannel ${action.options.playbackChannel}.`)
 
-			let buffers = [
-				Buffer.from([0xf0, 0x00, 0x00, 0x1a, 0x50, 0x12, 0x01, 0x00, 0x00, 0x06, playbackChannel, trackNumber, 0xf7]),
-			]
-
-			tcpClient.queue(buffers)
+			tcpClient.queue(setPlaybackTrack(trackNumber, playbackChannel))
 		},
 	}
 
@@ -184,27 +174,7 @@ export function getActions(tcpClient, state, numberOfInputs, numberOfZones, { co
 		callback: (action) => {
 			let inputNumber = parseInt(action.options.mute_number)
 			let zoneNumber = parseInt(action.options.number)
-
-			let buffers = [
-				Buffer.from([
-					0xf0,
-					0x00,
-					0x00,
-					0x1a,
-					0x50,
-					0x12,
-					0x01,
-					0x00,
-					0x00,
-					0x03,
-					inputNumber,
-					0x01,
-					zoneNumber,
-					action.options.mute ? 0x7f : 0x3f,
-					0xf7,
-				]),
-			]
-			tcpClient.queue(buffers)
+			tcpClient.queue(setInputToZoneMute(inputNumber, zoneNumber, action.options.mute))
 
 			// manually update internal state
 			state.setSend(ChannelType.Input, inputNumber, zoneNumber, undefined, action.options.mute)

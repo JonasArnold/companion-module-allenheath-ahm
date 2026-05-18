@@ -1,11 +1,10 @@
-import { InstanceBase, Regex, runEntrypoint, InstanceStatus } from '@companion-module/base'
+import { InstanceBase, runEntrypoint, InstanceStatus } from '@companion-module/base'
 import { getActions } from './src/actions.js'
 import { getPresets } from './src/presets.js'
 import { getVariables } from './src/variables.js'
 import { getFeedbacks } from './src/feedbacks.js'
 import UpgradeScripts from './src/upgrades.js'
-import { ChannelType, MonitoredFeedbackType } from './src/utility/constants.js'
-import { sleep } from './src/utility/helpers.js'
+import { ChannelType } from './src/utility/constants.js'
 import { configFields } from './src/config.js'
 import { trackAHMParams } from './src/state/AHMState.js'
 import { TCPClient } from './src/client/TCP.js'
@@ -133,12 +132,6 @@ class AHMInstance extends InstanceBase {
 			}),
 		)
 	}
-
-	/* case 'get_phantom':
-				cmd.buffers = [
-					Buffer.from([0xf0, 0x00, 0x00, 0x1a, 0x50, 0x12, 0x01, 0x00, 0x00, 0x01, 0x0b, 0x1b, channel, 0xf7]),
-				]
-				break */
 }
 
 runEntrypoint(AHMInstance, UpgradeScripts)

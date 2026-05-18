@@ -1,6 +1,7 @@
 import { ChannelType, SendInfoType } from '../utility/constants.js'
 import { sleep } from '../utility/helpers.js'
-import { requestLevelInfo, requestMuteInfo, requestSendInfo } from '../utility/formatHexMIDI.js'
+import { requestLevelInfo, requestMuteInfo } from '../formatMIDI/channels.js'
+import { requestSendInfo } from '../formatMIDI/sends.js'
 
 /**
  * AHM state polling factory function.
