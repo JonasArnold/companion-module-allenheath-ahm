@@ -9,7 +9,7 @@ import { sleep } from '../utility/helpers.js'
  * @param {Number} reqTime - Time between queued requests in ms
  * @returns {Function[]} Returns helper functions
  */
-export function TCPClient({ companion }, state, reqTime) {
+export function TCPClient({ companion }, state, reqTime, poller) {
 	let midiSocket
 	let txQueue = []
 	let queueRunning = false
@@ -48,7 +48,7 @@ export function TCPClient({ companion }, state, reqTime) {
 		})
 
 		midiSocket.on('data', (data) => {
-			parseResponse(data, { companion }, state)
+			parseResponse(data, { companion }, state, poller)
 		})
 
 		midiSocket.on('connect', () => {

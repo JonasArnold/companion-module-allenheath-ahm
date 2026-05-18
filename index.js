@@ -38,6 +38,11 @@ class AHMInstance extends InstanceBase {
 		this.AHMState.setManualTracking(ChannelType.Zone, this.config.manTrackZones)
 		this.AHMState.setManualTracking(ChannelType.ControlGroup, this.config.manTrackCGs)
 
+		// Set up state polling
+		this.pollState = pollStateTimer(() => this.tcpClient, this.config.pollRate, this.AHMState, (err) =>
+			console.error('Poller error:', err),
+		)
+
 		// Assign TCP client
 		this.tcpClient = TCPClient(
 			{
@@ -50,26 +55,27 @@ class AHMInstance extends InstanceBase {
 			},
 			this.AHMState,
 			TIME_BETW_MULTIPLE_REQ_MS,
+			this.pollState,
 		)
 
-		// Set up state polling
-		this.pollState = pollStateTimer(this.tcpClient, this.config.pollRate, this.AHMState, (err) =>
-			console.error('Poller error:', err),
-		)
-
-		// Init TCP connection
-		this.tcpClient.init(this.config.host, MIDI_PORT)
-		// Polling callback hooks
-		this.tcpClient.onConnected(() => {
-			this.pollState.start()
-		})
-		this.tcpClient.onDisconnect(() => {
-			this.pollState.stop()
-		})
+		// Init Companion module
 		this.initActions()
 		this.initFeedbacks()
 		this.initPresets()
 		this.initVariables()
+
+		// Polling callback hooks
+		this.tcpClient.onConnected(() => {
+			setTimeout(() => {
+				this.pollState.start()
+			}, 150) // Waits 150 ms for initFeedbacks() to finish
+		})
+		this.tcpClient.onDisconnect(() => {
+			this.pollState.stop()
+		})
+		// Init TCP connection
+		this.tcpClient.init(this.config.host, MIDI_PORT)
+
 	}
 
 	async destroy() {

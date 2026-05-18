@@ -11,16 +11,17 @@ import { requestSendInfo } from '../formatMIDI/sends.js'
  * @param {*} onError
  * @returns {Function[]}
  */
-export function pollStateTimer(socket, interval = 10000, state, onError = console.error) {
+export function pollStateTimer(getSocket, interval = 10000, state, onError = console.error) {
 	let stopped = false
-	let next = Date.now()
+	let timeout = null
 
 	async function tick() {
 		if (stopped) return
-		next += interval
 
 		try {
-			if (socket.destroyed) {
+			const socket = getSocket()
+
+			if (!socket || socket.destroyed || !socket.queue) {
 				throw new Error('Socket is not connected')
 			}
 
@@ -65,18 +66,43 @@ export function pollStateTimer(socket, interval = 10000, state, onError = consol
 		return requests
 	}
 
+	async function poll() {
+		if (stopped) return
+
+		await tick()
+
+		scheduleNextPoll()
+	}
+
+	function scheduleNextPoll() {
+		if (stopped) return
+
+		clearTimeout(timeout)
+
+		timeout = setTimeout(async () => {
+			await tick()
+			scheduleNextPoll()
+		}, interval)
+	}
+
 	function start() {
 		stopped = false
-		next = Date.now()
-		tick()
+		console.log('START POLLING')
+		poll()
 	}
 
 	function stop() {
 		stopped = true
+
+		if (timeout) {
+			clearTimeout(timeout)
+			timeout = null
+		}
 	}
 
 	return {
 		start,
 		stop,
+		poll
 	}
 }

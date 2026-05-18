@@ -1,7 +1,7 @@
 import { ChannelType } from '../utility/constants.js'
 import { getVarNameInputLevel, getVarNameZoneLevel, getVarNameCGLevel, getDbuValue } from '../utility/helpers.js'
 
-export function parseResponse(data, { companion }, state) {
+export function parseResponse(data, { companion }, state, poller) {
 	console.log(data)
 
 	if (data[0] === 0xf0) {
@@ -155,6 +155,7 @@ export function parseResponse(data, { companion }, state) {
 		let presetNumOffset = Number(data[2])
 		let preset = presetNum + presetNumOffset * 128 + 1
 		state.setPreset(preset)
+		poller.poll()
 
 		companion.log('info', `Preset ${state.getPreset()} recalled`)
 		companion.setVariableValues({ currentPreset: state.getPreset() })
