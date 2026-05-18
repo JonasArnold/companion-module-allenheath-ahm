@@ -68,7 +68,7 @@ export function createAutoTracking(state) {
 	 * @returns {Number} Level of channel as integer from API guide
 	 */
 	function getLevel(type, id) {
-		return state.trackedChannels[type]?.get(id)?.level ?? '-inf'
+		return state.trackedChannels[type]?.get(id)?.level ?? 0
 	}
 
 	/**
@@ -167,7 +167,7 @@ export function createAutoTracking(state) {
 	 * @returns {Number} Level of channel as integer from API guide
 	 */
 	function getSendLevel(type, idFrom, idTo) {
-		return state.trackedChannels[type]?.get(idFrom)?.sends?.get(idTo)?.level ?? '-inf'
+		return state.trackedChannels[type]?.get(idFrom)?.sends?.get(idTo)?.level ?? 0
 	}
 
 	/**
