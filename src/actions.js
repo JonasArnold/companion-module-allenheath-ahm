@@ -1,106 +1,11 @@
-import {
-	getChoicesArrayWithIncrementingNumbers,
-	getChoicesArrayOf1DArray,
-	getChoicesArrayOfKeyValueObject,
-	checkIfValueOfEnum,
-	getChTypeOfSendType,
-	getSendChTypeOfSendType
-} from './utility/helpers.js'
-import { dbu_Values, PlaybackChannel, ChannelType, SendType, SendInfoType } from './utility/constants.js'
+import { ChannelType, SendType, SendInfoType } from './utility/constants.js'
+import { listOptions, muteOptions, setLevelOptions, incDecOptions, playbackChannelOptions } from './utility/options.js'
 import { setLevelCallback, incDecLevelCallback, requestLevelInfo, requestMuteInfo } from './formatMIDI/channels.js'
 import { requestSendInfo, incDecSendLevelCallback, setInputToZoneMute } from './formatMIDI/sends.js'
 import { setPlaybackTrack } from './formatMIDI/playback.js'
 
 const PRESET_COUNT = 500
 const PLAYBACK_COUNT = 127
-
-function listOptions(name, qty, offset) {
-	return [
-		{
-			type: 'dropdown',
-			id: 'number',
-			label: name,
-			default: 0,
-			choices: getChoicesArrayWithIncrementingNumbers(name, qty, offset),
-			minChoicesForSearch: 0,
-		},
-	]
-}
-
-function muteOptions(name, qty, offset) {
-	return [
-		{
-			type: 'dropdown',
-			id: 'mute_number',
-			label: name,
-			default: 0,
-			choices: getChoicesArrayWithIncrementingNumbers(name, qty, offset),
-			minChoicesForSearch: 0,
-		},
-		{
-			type: 'checkbox',
-			id: 'mute',
-			label: 'Mute',
-			default: true,
-		},
-	]
-}
-
-function setLevelOptions(name, qty, offset) {
-	return [
-		{
-			type: 'dropdown',
-			id: 'setlvl_ch_number',
-			label: name,
-			default: 0,
-			choices: getChoicesArrayWithIncrementingNumbers(name, qty, offset),
-			minChoicesForSearch: 0,
-		},
-		{
-			type: 'dropdown',
-			id: 'level',
-			label: 'Set Level (dBu)',
-			default: '0',
-			choices: getChoicesArrayOf1DArray(dbu_Values),
-		},
-	]
-}
-
-function incDecOptions(name, qty, offset) {
-	return [
-		{
-			type: 'dropdown',
-			id: 'incdec_ch_number',
-			label: name,
-			default: 0,
-			choices: getChoicesArrayWithIncrementingNumbers(name, qty, offset),
-			minChoicesForSearch: 0,
-		},
-		{
-			type: 'dropdown',
-			id: 'incdec',
-			label: 'Increment/Decrement',
-			default: 'inc',
-			choices: [
-				{ id: 'inc', label: 'Increment' },
-				{ id: 'dec', label: 'Decrement' },
-			],
-		},
-	]
-}
-
-function playbackChannelOptions(name) {
-	return [
-		{
-			type: 'dropdown',
-			id: 'playbackChannel',
-			label: name,
-			default: 0,
-			choices: getChoicesArrayOfKeyValueObject(PlaybackChannel),
-			minChoicesForSearch: 0,
-		},
-	]
-}
 
 export function getActions(tcpClient, state, numberOfInputs, numberOfZones, { companion }) {
 	let actions = {}
