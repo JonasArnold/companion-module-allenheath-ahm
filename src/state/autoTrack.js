@@ -1,6 +1,8 @@
 import { ChannelType } from '../utility/constants.js'
 
 export function createAutoTracking(state) {
+	// CHANNELS //
+
 	/**
 	 * Adds channel to tracked parameters
 	 * @param {ChannelType} type - ChannelType (Input, Zone, or ControlGroup)
@@ -58,6 +60,28 @@ export function createAutoTracking(state) {
 	function getTrackedChannelMap(type) {
 		return state.trackedChannels[type]
 	}
+
+	/**
+	 * Get level of channel from tracked channels
+	 * @param {ChannelType} type - ChannelType (Input or Zone)
+	 * @param {Number} id - channel number
+	 * @returns {Number} Level of channel as integer from API guide
+	 */
+	function getLevel(type, id) {
+		return state.trackedChannels[type]?.get(id)?.level ?? '-inf'
+	}
+
+	/**
+	 * Get mute status of channel from tracked channels
+	 * @param {ChannelType} type - ChannelType (Input, Zone, or ControlGroup)
+	 * @param {Number} id - channel number
+	 * @returns {Boolean} Mute status of channel
+	 */
+	function getMute(type, id) {
+		return state.trackedChannels[type]?.get(id)?.mute ?? false
+	}
+
+	// SENDS //
 
 	/**
 	 * Adds an input or zone send to be tracked
@@ -137,26 +161,6 @@ export function createAutoTracking(state) {
 	}
 
 	/**
-	 * Get level of channel from tracked channels
-	 * @param {ChannelType} type - ChannelType (Input or Zone)
-	 * @param {Number} id - channel number
-	 * @returns {Number} Level of channel as integer from API guide
-	 */
-	function getLevel(type, id) {
-		return state.trackedChannels[type]?.get(id)?.level ?? '-inf'
-	}
-
-	/**
-	 * Get mute status of channel from tracked channels
-	 * @param {ChannelType} type - ChannelType (Input, Zone, or ControlGroup)
-	 * @param {Number} id - channel number
-	 * @returns {Boolean} Mute status of channel
-	 */
-	function getMute(type, id) {
-		return state.trackedChannels[type]?.get(id)?.mute ?? false
-	}
-
-	/**
 	 * Get level of channel send from tracked channels
 	 * @param {ChannelType} type - ChannelType (Input, Zone, or ControlGroup)
 	 * @param {Number} id - channel number
@@ -175,6 +179,8 @@ export function createAutoTracking(state) {
 	function getSendMute(type, idFrom, idTo) {
 		return state.trackedChannels[type]?.get(idFrom)?.sends?.get(idTo)?.mute ?? false
 	}
+
+	// PRESETS //
 
 	/**
 	 * Updates the state of the last preset number recalled
