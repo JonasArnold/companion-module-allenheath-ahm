@@ -1,7 +1,7 @@
 import { Colors, SendType, MonitoredFeedbackType, ChannelType } from './utility/constants.js'
-import { getDbuValue } from './utility/helpers.js'
+import { getDbuValue, getChoicesArrayWithIncrementingNumbers } from './utility/helpers.js'
 
-export function getFeedbacks(state) {
+export function getFeedbacks(state, numberOfIO) {
 	const feedbacks = {}
 
 	feedbacks['inputMute'] = {
@@ -14,10 +14,12 @@ export function getFeedbacks(state) {
 		},
 		options: [
 			{
-				type: 'textinput',
-				label: 'Select input',
+				type: 'dropdown',
 				id: 'input',
-				default: 1,
+				label: 'Input',
+				default: 0,
+				choices: getChoicesArrayWithIncrementingNumbers('Input', numberOfIO, -1),
+				minChoicesForSearch: 0,
 			},
 		],
 		callback: (feedback, bank) => {
@@ -42,10 +44,12 @@ export function getFeedbacks(state) {
 		description: 'Returns level of input in dBu',
 		options: [
 			{
-				type: 'textinput',
-				label: 'Select input',
+				type: 'dropdown',
 				id: 'input',
-				default: 1,
+				label: 'Input',
+				default: 0,
+				choices: getChoicesArrayWithIncrementingNumbers('Input', numberOfIO, -1),
+				minChoicesForSearch: 0,
 			},
 		],
 		callback: (feedback, bank) => {
@@ -73,15 +77,17 @@ export function getFeedbacks(state) {
 		},
 		options: [
 			{
-				type: 'textinput',
-				label: 'Select zone',
+				type: 'dropdown',
 				id: 'zone',
-				default: 1,
+				label: 'Zone',
+				default: 0,
+				choices: getChoicesArrayWithIncrementingNumbers('Zone', numberOfIO, -1),
+				minChoicesForSearch: 0,
 			},
 		],
 		callback: (feedback, bank) => {
 			let zone = parseInt(feedback.options.zone)
-
+			console.log('zoneMute feedback reading - zone:', zone, 'result:', state.getMute(ChannelType.Zone, zone))
 			state.addChannel(ChannelType.Zone, zone)
 
 			return state.getMute(ChannelType.Zone, zone)
@@ -98,10 +104,12 @@ export function getFeedbacks(state) {
 		description: 'Returns level of zone in dBu',
 		options: [
 			{
-				type: 'textinput',
-				label: 'Select zone',
+				type: 'dropdown',
 				id: 'zone',
-				default: 1,
+				label: 'Zone',
+				default: 0,
+				choices: getChoicesArrayWithIncrementingNumbers('Zone', numberOfIO, -1),
+				minChoicesForSearch: 0,
 			},
 		],
 		callback: (feedback, bank) => {
@@ -129,10 +137,12 @@ export function getFeedbacks(state) {
 		},
 		options: [
 			{
-				type: 'textinput',
-				label: 'Select control group',
+				type: 'dropdown',
 				id: 'cg',
-				default: 1,
+				label: 'Control Group',
+				default: 0,
+				choices: getChoicesArrayWithIncrementingNumbers('Control Group', 32, -1),
+				minChoicesForSearch: 0,
 			},
 		],
 		callback: (feedback, bank) => {
@@ -154,10 +164,12 @@ export function getFeedbacks(state) {
 		description: 'Returns level of control group in dBu',
 		options: [
 			{
-				type: 'textinput',
-				label: 'Select control group',
+				type: 'dropdown',
 				id: 'cg',
-				default: 1,
+				label: 'Control Group',
+				default: 0,
+				choices: getChoicesArrayWithIncrementingNumbers('Control Group', 32, -1),
+				minChoicesForSearch: 0,
 			},
 		],
 		callback: (feedback, bank) => {
@@ -185,29 +197,33 @@ export function getFeedbacks(state) {
 		},
 		options: [
 			{
-				type: 'textinput',
-				label: 'Select input',
+				type: 'dropdown',
 				id: 'input',
-				default: 1,
+				label: 'Input',
+				default: 0,
+				choices: getChoicesArrayWithIncrementingNumbers('Input', numberOfIO, -1),
+				minChoicesForSearch: 0,
 			},
 			{
-				type: 'textinput',
-				label: 'Select zone',
+				type: 'dropdown',
 				id: 'zone',
-				default: 1,
+				label: 'Zone',
+				default: 0,
+				choices: getChoicesArrayWithIncrementingNumbers('Zone', numberOfIO, -1),
+				minChoicesForSearch: 0,
 			},
 		],
 		callback: (feedback, bank) => {
-			let input = parseInt(feedback.options.input) - 1
-			let zone = parseInt(feedback.options.zone) - 1
+			let input = parseInt(feedback.options.input)
+			let zone = parseInt(feedback.options.zone)
 
 			state.addSend(ChannelType.Input, input, zone)
 
 			return state.getSendMute(ChannelType.Input, input, zone)
 		},
 		unsubscribe: (feedback) => {
-			let input = parseInt(feedback.options.input) - 1
-			let zone = parseInt(feedback.options.zone) - 1
+			let input = parseInt(feedback.options.input)
+			let zone = parseInt(feedback.options.zone)
 			state.removeSend(ChannelType.Input, input, zone)
 		},
 	}
@@ -218,16 +234,20 @@ export function getFeedbacks(state) {
 		description: 'Returns value of input sent to zone',
 		options: [
 			{
-				type: 'textinput',
-				label: 'Select input',
+				type: 'dropdown',
 				id: 'input',
-				default: 1,
+				label: 'Input',
+				default: 0,
+				choices: getChoicesArrayWithIncrementingNumbers('Input', numberOfIO, -1),
+				minChoicesForSearch: 0,
 			},
 			{
-				type: 'textinput',
-				label: 'Select zone',
+				type: 'dropdown',
 				id: 'zone',
-				default: 1,
+				label: 'Zone',
+				default: 0,
+				choices: getChoicesArrayWithIncrementingNumbers('Zone', numberOfIO, -1),
+				minChoicesForSearch: 0,
 			},
 		],
 		callback: (feedback, bank) => {

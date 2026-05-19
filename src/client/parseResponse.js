@@ -2,14 +2,14 @@ import { ChannelType } from '../utility/constants.js'
 import { getVarNameInputLevel, getVarNameZoneLevel, getVarNameCGLevel, getDbuValue } from '../utility/helpers.js'
 
 export function parseResponse(data, { companion }, state, poller) {
-	console.log(data)
+	console.log('INCOMMING: ', data)
 
 	if (data[0] === 0xf0) {
 		// receiving SysEx data
 
 		// Common data for all channel types:
-		let inputNum = parseInt(data[10]) + 1
-		let zoneNum = parseInt(data[12]) + 1
+		let inputNum = parseInt(data[10])
+		let zoneNum = parseInt(data[12])
 
 		if (data[9] === 0x02) {
 			// receiving send level data
@@ -54,7 +54,7 @@ export function parseResponse(data, { companion }, state, poller) {
 		// second value of hex:63 and fourth value of hex:62 means level data
 
 		// Data shared across all channel types:
-		let channel = parseInt(data[2]) + 1
+		let channel = parseInt(data[2])
 		let level = parseInt(data[6])
 
 		if (data[0] === 0xb0) {
@@ -110,7 +110,7 @@ export function parseResponse(data, { companion }, state, poller) {
 	if (data[0] === 0x90 || data[0] === 0x91 || data[0] === 0x92) {
 		// first value of hex:90, hex:91, or hex:92 means mute of some kind
 		let mute
-		let channel = parseInt(data[1]) + 1
+		let channel = parseInt(data[1])
 		console.log('INCOMING MUTE DATA:', data[0], channel)
 
 		switch (data[2]) {

@@ -49,7 +49,7 @@ export function requestSendInfo(sendType, infoType, chNumber, sendChNumber) {
  * @param {ChannelType} type
  * @returns {Buffer} Hex MIDI buffer ready to send
  */
-export async function incDecSendLevelCallback(action, type) {
+export function incDecSendLevelCallback(action, type) {
 	if (checkIfValueOfEnum(type, SendType) == false) {
 		return
 	}

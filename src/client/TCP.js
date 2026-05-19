@@ -17,6 +17,7 @@ export function TCPClient({ companion }, state, reqTime, poller) {
 	let isConnected = false
 	let onConnectedCallback
 	let onDisconnectCallback
+	let pollHoldUntil = 0
 
 	function destroy() {
 		if (!midiSocket) return
@@ -71,6 +72,10 @@ export function TCPClient({ companion }, state, reqTime, poller) {
 		onDisconnectCallback = cb
 	}
 
+	function holdPolling(ms) {
+		pollHoldUntil = Math.max(pollHoldUntil, Date.now() + ms)
+	}
+
 	/**
 	 * Queues MIDI packet for sending
 	 * @param {Buffer} buffers 
@@ -78,6 +83,10 @@ export function TCPClient({ companion }, state, reqTime, poller) {
 	 */
 	function queue(buffers, priority = Priority.HIGH) {
 		txQueue.push({buffers, priority, timestamp: Date.now()})
+
+		if (priority === Priority.HIGH) {
+			holdPolling(200)
+		}
 
 		startQueue()
 	}
@@ -88,13 +97,12 @@ export function TCPClient({ companion }, state, reqTime, poller) {
 		queueRunning = true
 
 		while (txQueue.length > 0) {
-			txQueue.sort((a, b) => 
-				a.priority !== b.priority
-					? a.priority - b.priority
-					: a.timestamp - b.timestamp
-			)
+			// txQueue.sort((a, b) => 
+			// 	a.priority !== b.priority
+			// 		? a.priority - b.priority
+			// 		: a.timestamp - b.timestamp
+			// )
 
-			console.log('txQueue: ', txQueue)
 			const txBuffer = txQueue.shift()
 			if (!txBuffer) continue
 
@@ -116,6 +124,7 @@ export function TCPClient({ companion }, state, reqTime, poller) {
 				if (!midiSocket) return
 				companion.log('debug', `sending ${buffers[i].toString('hex')} via MIDI TCP`)
 				midiSocket.send(buffers[i])
+				console.log('send', buffers.length, Date.now())
 			}
 		}
 	}
@@ -123,7 +132,6 @@ export function TCPClient({ companion }, state, reqTime, poller) {
 	return {
 		destroy,
 		init,
-		send,
 		queue,
 		isConnected,
 		onConnected,

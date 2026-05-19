@@ -39,8 +39,6 @@ export function pollStateTimer(getSocket, interval = 10000, state, onError = con
 		} catch (err) {
 			onError(err)
 		}
-
-		setTimeout(tick, interval)
 	}
 
 	function buildChReqs(type, ids) {

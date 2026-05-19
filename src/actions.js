@@ -1,11 +1,139 @@
-import { ChannelType, SendType, SendInfoType } from './utility/constants.js'
-import { listOptions, muteOptions, setLevelOptions, incDecOptions, playbackChannelOptions } from './utility/options.js'
+import {
+	getChoicesArrayWithIncrementingNumbers,
+	getChoicesArrayOf1DArray,
+	getChoicesArrayOfKeyValueObject,
+} from './utility/helpers.js'
+import { ChannelType, SendType, SendInfoType, dbu_Values, PlaybackChannel } from './utility/constants.js'
 import { setLevelCallback, incDecLevelCallback, requestLevelInfo, requestMuteInfo } from './formatMIDI/channels.js'
 import { requestSendInfo, incDecSendLevelCallback, setInputToZoneMute } from './formatMIDI/sends.js'
 import { setPlaybackTrack } from './formatMIDI/playback.js'
 
 const PRESET_COUNT = 500
 const PLAYBACK_COUNT = 127
+
+/**
+ * Builds dropdown options for Companion Actions
+ * @param {String} name - leading text for dropdown options
+ * @param {Number} qty 
+ * @param {Number} offset 
+ * @returns {Object[]}
+ */
+function listOptions(name, qty, offset) {
+	return [
+		{
+			type: 'dropdown',
+			id: 'number',
+			label: name,
+			default: 0,
+			choices: getChoicesArrayWithIncrementingNumbers(name, qty, offset),
+			minChoicesForSearch: 0,
+		},
+	]
+}
+
+/**
+ * Builds Companion Action Options for mute actions
+ * @param {String} name - leading text for dropdown options
+ * @param {Number} qty 
+ * @param {Number} offset 
+ * @returns {Object[]}
+ */
+function muteOptions(name, qty, offset) {
+	return [
+		{
+			type: 'dropdown',
+			id: 'mute_number',
+			label: name,
+			default: 0,
+			choices: getChoicesArrayWithIncrementingNumbers(name, qty, offset),
+			minChoicesForSearch: 0,
+		},
+		{
+			type: 'checkbox',
+			id: 'mute',
+			label: 'Mute',
+			default: true,
+		},
+	]
+}
+
+/**
+ * Builds Companion Action Options for set level actions
+ * @param {String} name - leading text for dropdown options
+ * @param {Number} qty 
+ * @param {Number} offset 
+ * @returns {Object[]}
+ */
+function setLevelOptions(name, qty, offset) {
+	return [
+		{
+			type: 'dropdown',
+			id: 'setlvl_ch_number',
+			label: name,
+			default: 0,
+			choices: getChoicesArrayWithIncrementingNumbers(name, qty, offset),
+			minChoicesForSearch: 0,
+		},
+		{
+			type: 'dropdown',
+			id: 'level',
+			label: 'Set Level (dBu)',
+			default: '0',
+			choices: getChoicesArrayOf1DArray(dbu_Values),
+		},
+	]
+}
+
+/**
+ * Builds Companion Action Options for inc/dec level actions
+ * @param {String} name - leading text for dropdown options
+ * @param {Number} qty 
+ * @param {Number} offset 
+ * @returns {Object[]}
+ */
+function incDecOptions(name, qty, offset) {
+	return [
+		{
+			type: 'dropdown',
+			id: 'incdec_ch_number',
+			label: name,
+			default: 0,
+			choices: getChoicesArrayWithIncrementingNumbers(name, qty, offset),
+			minChoicesForSearch: 0,
+		},
+		{
+			type: 'dropdown',
+			id: 'incdec',
+			label: 'Increment/Decrement',
+			default: 'inc',
+			choices: [
+				{ id: 'inc', label: 'Increment' },
+				{ id: 'dec', label: 'Decrement' },
+			],
+		},
+	]
+}
+
+/**
+ * Builds Companion Action Options for playback actions
+ * @param {String} name - leading text for dropdown options
+ * @param {Number} qty 
+ * @param {Number} offset 
+ * @returns {Object[]}
+ */
+function playbackChannelOptions(name) {
+	return [
+		{
+			type: 'dropdown',
+			id: 'playbackChannel',
+			label: name,
+			default: 0,
+			choices: getChoicesArrayOfKeyValueObject(PlaybackChannel),
+			minChoicesForSearch: 0,
+		},
+	]
+}
+
 
 export function getActions(tcpClient, state, numberOfInputs, numberOfZones, { companion }) {
 	let actions = {}
@@ -92,7 +220,7 @@ export function getActions(tcpClient, state, numberOfInputs, numberOfZones, { co
 
 	actions['set_level_input'] = {
 		name: 'Set Level of Input',
-		options: setLevelOptions(ChannelType.Input, numberOfInputs, -1),
+		options: setLevelOptions('Input', numberOfInputs, -1),
 		callback: (action) => {
 			tcpClient.queue(setLevelCallback(action, ChannelType.Input))
 			tcpClient.queue(requestLevelInfo(ChannelType.Input, action.options.setlvl_ch_number))
@@ -101,7 +229,7 @@ export function getActions(tcpClient, state, numberOfInputs, numberOfZones, { co
 
 	actions['inc_dec_level_input'] = {
 		name: 'Increment/Decrement Level of Input',
-		options: incDecOptions(ChannelType.Input, numberOfInputs, -1),
+		options: incDecOptions('Input', numberOfInputs, -1),
 		callback: (action) => {
 			tcpClient.queue(incDecLevelCallback(action, ChannelType.Input))
 			tcpClient.queue(requestLevelInfo(ChannelType.Input, action.options.setlvl_ch_number))
@@ -110,7 +238,23 @@ export function getActions(tcpClient, state, numberOfInputs, numberOfZones, { co
 
 	actions['set_level_zone'] = {
 		name: 'Set Level of Zone',
-		options: setLevelOptions('Zone', numberOfZones, -1),
+		options: [
+			{
+				type: 'dropdown',
+				id: 'setlvl_ch_number',
+				label: 'Zone',
+				default: 0,
+				choices: getChoicesArrayWithIncrementingNumbers('Zone', numberOfZones, -1),
+				minChoicesForSearch: 0,
+			},
+			{
+				type: 'dropdown',
+				id: 'level',
+				label: 'Set Level (dBu)',
+				default: '0',
+				choices: getChoicesArrayOf1DArray(dbu_Values),
+			},
+		],
 		callback: (action) => {
 			tcpClient.queue(setLevelCallback(action, ChannelType.Zone))
 			tcpClient.queue(requestLevelInfo(ChannelType.Zone, action.options.setlvl_ch_number))
@@ -128,7 +272,7 @@ export function getActions(tcpClient, state, numberOfInputs, numberOfZones, { co
 
 	actions['inc_dec_in_zn_send_level'] = {
 		name: 'Increment/Decrement Input to Zone Send Level',
-		options: incDecOptions(ChannelType.Input, numberOfInputs, -1).concat(listOptions('Zone', numberOfZones, -1)),
+		options: incDecOptions('Input', numberOfInputs, -1).concat(listOptions('Zone', numberOfZones, -1)),
 		callback: (action) => {
 			tcpClient.queue(incDecSendLevelCallback(action, SendType.InputToZone))
 		},

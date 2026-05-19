@@ -99,7 +99,7 @@ class AHMInstance extends InstanceBase {
 		this.AHMState.setManualTracking(ChannelType.ControlGroup, this.config.manTrackCGs)
 
 		// Set up state polling
-		this.pollState = pollStateTimer(this.tcpClient, this.config.pollRate, this.AHMState, (err) =>
+		this.pollState = pollStateTimer(() => this.tcpClient, this.config.pollRate, this.AHMState, (err) =>
 			console.error('Poller error:', err),
 		)
 		this.initActions()
@@ -122,7 +122,7 @@ class AHMInstance extends InstanceBase {
 	}
 
 	initFeedbacks() {
-		this.setFeedbackDefinitions(getFeedbacks(this.AHMState))
+		this.setFeedbackDefinitions(getFeedbacks(this.AHMState, this.numberOfInputs))
 	}
 
 	initPresets() {

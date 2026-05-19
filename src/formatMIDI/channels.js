@@ -9,7 +9,7 @@ import { ChannelType } from '../utility/constants.js'
  */
 export function requestLevelInfo(chType, chNumber) {
 	if (checkIfValueOfEnum(chType, ChannelType) == false) return
-	console.log('requested channel', chNumber, 'outputting channel', chNumber - 1)
+	// console.log('requested channel', chNumber, 'outputting channel', chNumber - 1)
 
 	return [
 		Buffer.from([
@@ -53,7 +53,7 @@ export function requestMuteInfo(chType, chNumber) {
 			parseInt(chType),
 			0x01,
 			0x09,
-			parseInt(chNumber), //- 1,
+			parseInt(chNumber), // - 1,
 			0xf7,
 		]),
 	]
@@ -65,18 +65,30 @@ export function requestMuteInfo(chType, chNumber) {
  * @param {ChannelType} type
  * @returns {Buffer} Hex MIDI buffer ready to send
  */
-export async function setLevelCallback(action, type) {
+export function setLevelCallback(action, type) {
 	if (checkIfValueOfEnum(type, ChannelType) == false) {
 		return
 	}
 
-	let typeCodeSetLevel = parseInt(0xb0 + type) // type code for Command "Channel Level"
-	let typeCodeGetLevel = parseInt(0x00 + type) // type code for Command "Get Channel Level"
+	let typeHex = parseInt(0xb0 + type) // type code for Command "Channel Level"
 	let chNumber = parseInt(action.options.setlvl_ch_number)
 	let levelDec = parseInt(action.options.level)
+	console.log('chNumber', action.options.setlvl_ch_number)
 
 	return [
-		Buffer.from([typeCodeSetLevel, 0x63, chNumber, typeCodeSetLevel, 0x62, 0x17, typeCodeSetLevel, 0x06, levelDec]),
+		Buffer.from([
+			typeHex,
+			0x63,
+			chNumber,
+			
+			typeHex,
+			0x62,
+			0x17,
+			
+			typeHex,
+			0x06,
+			levelDec
+		]),
 	]
 }
 
@@ -86,7 +98,7 @@ export async function setLevelCallback(action, type) {
  * @param {ChannelType} type
  * @returns {Buffer} Hex MIDI buffer ready to send
  */
-export async function incDecLevelCallback(action, type) {
+export function incDecLevelCallback(action, type) {
 	if (checkIfValueOfEnum(type, ChannelType) == false) {
 		return
 	}
@@ -95,6 +107,8 @@ export async function incDecLevelCallback(action, type) {
 	let typeCodeGetLevel = parseInt(0x00 + type) // type code for Command "Get Channel Level"
 	let chNumber = parseInt(action.options.incdec_ch_number)
 	let incdecSelector = action.options.incdec == 'inc' ? 0x7f : 0x3f
+
+	console.log('incDecCallback: ', type, chNumber, incdecSelector)  // numbers are correct here
 
 	return [
 		Buffer.from([
