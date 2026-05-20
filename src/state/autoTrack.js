@@ -11,13 +11,14 @@ export function createAutoTracking(state) {
 	function addChannel(type, id) {
 		if (!state.trackedChannels[type].has(id)) {
 			state.trackedChannels[type].set(id, {
-				level: '-inf',
+				level: 0,
 				mute: false,
 				sends: new Map(),
 			})
+			return { isNew: true, channel: state.trackedChannels[type].get(id) }
 		}
 
-		return state.trackedChannels[type].get(id)
+		return { isNew: false, channel: state.trackedChannels[type].get(id) }
 	}
 
 	/**
@@ -42,14 +43,13 @@ export function createAutoTracking(state) {
 	function setChannel(type, id, level, mute) {
 		let channel = state.trackedChannels[type]?.get(id)
 		if (!state.trackedChannels[type].has(id)) {
+			console.log('setChannel BAIL - not tracked:', type, id)
 			return
 		}
 
 		if (level !== undefined) channel.level = level
 		if (mute !== undefined) channel.mute = mute
-		console.log('SET INSTANCE', state.trackedChannels)
-		console.log('SET STACK')
-		console.log('MUTATE', type, id, mute, 'prev=', state.trackedChannels[type].get(id))
+		console.log('setChannel WROTE - type:', type, 'id:', id, 'level:', level, 'mute:', mute)
 	}
 
 	/**
@@ -90,16 +90,25 @@ export function createAutoTracking(state) {
 	 * @param {Number} idTo
 	 */
 	function addSend(type, idFrom, idTo) {
-		const channel = addChannel(type, idFrom)
+		const { channel } = addChannel(type, idFrom)
+		if (!channel.sends) {
+			channel.sends = new Map()
+		}
+		const isNew = !channel.sends?.has(idTo)
+		
+		const existing = channel.sends.get(idTo)
+		console.log('addSend - existing:', existing, 'initialized:', existing?.initialized)
 
-		if (!channel.sends?.has(idTo)) {
+		if (isNew) {
 			channel.sends.set(idTo, {
-				level: '-inf',
+				level: 0,
 				mute: false,
+				initialized: false
 			})
 		}
 
-		return channel.sends.get(idTo)
+		const send = channel.sends.get(idTo)
+		return { isNew: !send.initialized, send }
 	}
 
 	/**
@@ -124,10 +133,12 @@ export function createAutoTracking(state) {
 	 * @param {Boolean} mute
 	 */
 	function setSend(type, idFrom, idTo, level, mute) {
-		const send = addSend(type, idFrom, idTo)
+		const {send} = addSend(type, idFrom, idTo)
 
 		if (level !== undefined) send.level = level
 		if (mute !== undefined) send.mute = mute
+		send.initialized = true
+		console.log('setSend - type:', type, 'idFrom:', idFrom, 'idTo:', idTo, 'level:', send.level, 'initialized:', send.initialized)
 	}
 
 	/**

@@ -10,7 +10,7 @@ import { ChannelType, SendInfoType, SendType } from '../utility/constants.js'
  * @returns { Buffer } Formulated command buffer
  */
 export function requestSendInfo(sendType, infoType, chNumber, sendChNumber) {
-	if (checkIfValueOfEnum(sendType, ChannelType) == false) return
+	if (checkIfValueOfEnum(sendType, SendType) == false) return
 	if (checkIfValueOfEnum(infoType, SendInfoType) == false) return
 
 	// get types of send
@@ -35,9 +35,9 @@ export function requestSendInfo(sendType, infoType, chNumber, sendChNumber) {
 			0x01,
 			0x0f,
 			parseInt(infoType, 16),
-			parseInt(chNumber) - 1,
+			parseInt(chNumber), // - 1,
 			parseInt(sendChType),
-			parseInt(sendChNumber) - 1,
+			parseInt(sendChNumber), // - 1,
 			0xf7,
 		]),
 	]

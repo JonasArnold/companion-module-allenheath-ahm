@@ -1,7 +1,9 @@
-import { Colors, SendType, MonitoredFeedbackType, ChannelType } from './utility/constants.js'
+import { Colors, SendType, MonitoredFeedbackType, ChannelType, SendInfoType } from './utility/constants.js'
 import { getDbuValue, getChoicesArrayWithIncrementingNumbers } from './utility/helpers.js'
+import { requestSendInfo } from './formatMIDI/sends.js'
+import { requestLevelInfo, requestMuteInfo } from './formatMIDI/channels.js'
 
-export function getFeedbacks(state, numberOfIO) {
+export function getFeedbacks(state, tcpClient, numberOfIO) {
 	const feedbacks = {}
 
 	feedbacks['inputMute'] = {
@@ -56,7 +58,12 @@ export function getFeedbacks(state, numberOfIO) {
 			let input = parseInt(feedback.options.input)
 			console.log('feedback log', input, feedback.options.input)
 
-			state.addChannel(ChannelType.Input, input)
+			const { isNew } = state.addChannel(ChannelType.Input, input)
+			if (isNew) {
+				// If new, immediately request level info
+				tcpClient.queue(requestLevelInfo(ChannelType.Input, input))
+				tcpClient.queue(requestMuteInfo(ChannelType.Input, input))
+			}
 
 			console.log('feedback getLevel ', state.getLevel(ChannelType.Input, input))
 			return getDbuValue(state.getLevel(ChannelType.Input, input))
@@ -116,7 +123,12 @@ export function getFeedbacks(state, numberOfIO) {
 			let zone = parseInt(feedback.options.zone)
 			console.log('feedback log', zone, feedback.options.zone)
 
-			state.addChannel(ChannelType.Zone, zone)
+			const { isNew } = state.addChannel(ChannelType.Zone, zone)
+			if (isNew) {
+				// If new, immediately request level info
+				tcpClient.queue(requestLevelInfo(ChannelType.Zone, zone))
+				tcpClient.queue(requestMuteInfo(ChannelType.Zone, zone))
+			}
 
 			console.log('feedback getLevel ', state.getLevel(ChannelType.Zone, zone))
 			return getDbuValue(state.getLevel(ChannelType.Zone, zone))
@@ -176,7 +188,12 @@ export function getFeedbacks(state, numberOfIO) {
 			let cg = parseInt(feedback.options.cg)
 			console.log('feedback log', cg, feedback.options.cg)
 
-			state.addChannel(ChannelType.ControlGroup, cg)
+			const { isNew } = state.addChannel(ChannelType.ControlGroup, cg)
+			if (isNew) {
+				// If new, immediately request level info
+				tcpClient.queue(requestLevelInfo(ChannelType.ControlGroup, cg))
+				tcpClient.queue(requestMuteInfo(ChannelType.ControlGroup, cg))
+			}
 
 			console.log('feedback getLevel ', state.getLevel(ChannelType.ControlGroup, cg))
 			return getDbuValue(state.getLevel(ChannelType.ControlGroup, cg))
@@ -253,8 +270,14 @@ export function getFeedbacks(state, numberOfIO) {
 		callback: (feedback, bank) => {
 			let input = parseInt(feedback.options.input)
 			let zone = parseInt(feedback.options.zone)
+			console.log('inputToZoneLevel feedback - input:', input, 'zone:', zone, 'level:', state.getSendLevel(ChannelType.Input, input, zone))
 
-			state.addSend(ChannelType.Input, input, zone)
+			const { isNew } = state.addSend(ChannelType.Input, input, zone)
+			if (isNew) {
+				console.log('isNew send - input:', input, 'zone:', zone)
+				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.LEVEL, input, zone))
+				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.MUTE, input, zone))
+			}
 
 			return getDbuValue(state.getSendLevel(ChannelType.Input, input, zone))
 		},

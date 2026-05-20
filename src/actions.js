@@ -214,7 +214,7 @@ export function getActions(tcpClient, state, numberOfInputs, numberOfZones, { co
 			companion.checkFeedbacks('inputToZoneMute')
 
 			console.log(inputNumber, zoneNumber, SendInfoType.MUTE)
-			tcpClient.queue(requestSendInfo(ChannelType.Input, SendInfoType.MUTE, inputNumber, zoneNumber))
+			tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.MUTE, inputNumber, zoneNumber))
 		},
 	}
 
@@ -275,6 +275,9 @@ export function getActions(tcpClient, state, numberOfInputs, numberOfZones, { co
 		options: incDecOptions('Input', numberOfInputs, -1).concat(listOptions('Zone', numberOfZones, -1)),
 		callback: (action) => {
 			tcpClient.queue(incDecSendLevelCallback(action, SendType.InputToZone))
+			tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.LEVEL, 
+				parseInt(action.options.incdec_ch_number), 
+				parseInt(action.options.number)))
 		},
 	}
 
@@ -283,8 +286,11 @@ export function getActions(tcpClient, state, numberOfInputs, numberOfZones, { co
 		options: incDecOptions('Zone', numberOfZones, -1).concat(listOptions('Zone', numberOfZones, -1)),
 		callback: (action) => {
 			tcpClient.queue(incDecSendLevelCallback(action, SendType.ZoneToZone))
+			tcpClient.queue(requestSendInfo(SendType.ZoneToZone, SendInfoType.LEVEL, 
+				parseInt(action.options.incdec_ch_number), 
+				parseInt(action.options.number)))
 		},
-	}
+	},
 
 	// Control Group actions
 	actions['set_level_controlgroup'] = {

@@ -25,7 +25,7 @@ export function requestLevelInfo(chType, chNumber) {
 			0x01,
 			0x0b,
 			0x17,
-			parseInt(chNumber) - 1,
+			parseInt(chNumber), // - 1,
 			0xf7,
 		]),
 	]

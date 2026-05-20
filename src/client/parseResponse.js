@@ -2,7 +2,7 @@ import { ChannelType } from '../utility/constants.js'
 import { getVarNameInputLevel, getVarNameZoneLevel, getVarNameCGLevel, getDbuValue } from '../utility/helpers.js'
 
 export function parseResponse(data, { companion }, state, poller) {
-	console.log('INCOMMING: ', data)
+	console.log('INCOMING RAW:', data.toString('hex'))
 
 	if (data[0] === 0xf0) {
 		// receiving SysEx data
@@ -60,6 +60,7 @@ export function parseResponse(data, { companion }, state, poller) {
 		if (data[0] === 0xb0) {
 			// first value of hex:b0 means channel level data
 			let variableNameInput = getVarNameInputLevel(channel)
+			console.log('parseResponse level - channel:', channel, 'has in state:', state.trackedChannels[0].has(channel))
 
 			companion.log(
 				'info',

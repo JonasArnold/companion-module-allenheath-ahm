@@ -58,17 +58,11 @@ class AHMInstance extends InstanceBase {
 			this.pollState,
 		)
 
-		// Init Companion module
-		this.initActions()
-		this.initFeedbacks()
-		this.initPresets()
-		this.initVariables()
-
 		// Polling callback hooks
 		this.tcpClient.onConnected(() => {
 			setTimeout(() => {
 				this.pollState.start()
-			}, 150) // Waits 150 ms for initFeedbacks() to finish
+			}, 2000) // Waits 2 sec for initFeedbacks() to finish
 		})
 		this.tcpClient.onDisconnect(() => {
 			this.pollState.stop()
@@ -76,6 +70,11 @@ class AHMInstance extends InstanceBase {
 		// Init TCP connection
 		this.tcpClient.init(this.config.host, MIDI_PORT)
 
+		// Init Companion module
+		this.initActions()
+		this.initFeedbacks()
+		this.initPresets()
+		this.initVariables()
 	}
 
 	async destroy() {
@@ -122,7 +121,7 @@ class AHMInstance extends InstanceBase {
 	}
 
 	initFeedbacks() {
-		this.setFeedbackDefinitions(getFeedbacks(this.AHMState, this.numberOfInputs))
+		this.setFeedbackDefinitions(getFeedbacks(this.AHMState, this.tcpClient, this.numberOfInputs))
 	}
 
 	initPresets() {

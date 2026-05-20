@@ -42,7 +42,7 @@ export const configFields = [
 			'Specify channels to be tracked in global variables. ' +
 			'This creates a variable for each input, zone, or control group that returns its level. ' +
 			'Any channel not tracked here can still be tracked using local variables and the "Input Level", ' +
-			'"Zone Level", and "Control Group Level" feedbacks. NOTE: using feedbacks with local variables ' +
+			'"Zone Level", and "Control Group Level" feedbacks. <br> NOTE: using feedbacks with local variables ' +
 			'will NOT create global variables; use the fields below instead.',
 		default: false,
 		width: 12,

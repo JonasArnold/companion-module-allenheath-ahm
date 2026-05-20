@@ -1,4 +1,4 @@
-import { ChannelType, Priority, SendInfoType } from '../utility/constants.js'
+import { ChannelType, Priority, SendInfoType, SendType } from '../utility/constants.js'
 import { sleep } from '../utility/helpers.js'
 import { requestLevelInfo, requestMuteInfo } from '../formatMIDI/channels.js'
 import { requestSendInfo } from '../formatMIDI/sends.js'
@@ -29,8 +29,8 @@ export function pollStateTimer(getSocket, interval = 10000, state, onError = con
 				...buildChReqs(ChannelType.Input, state.getTrackedChannelMap(ChannelType.Input)),
 				...buildChReqs(ChannelType.Zone, state.getTrackedChannelMap(ChannelType.Zone)),
 				...buildChReqs(ChannelType.ControlGroup, state.getTrackedChannelMap(ChannelType.ControlGroup)),
-				...buildSendReqs(ChannelType.Input, state.getAllSendStates(ChannelType.Input)),
-				...buildSendReqs(ChannelType.Zone, state.getAllSendStates(ChannelType.Zone)),
+				...buildSendReqs(SendType.InputToZone, state.getAllSendStates(ChannelType.Input)),
+				...buildSendReqs(SendType.ZoneToZone, state.getAllSendStates(ChannelType.Zone)),
 			]
 
 			for (const req of requests) {
@@ -44,7 +44,8 @@ export function pollStateTimer(getSocket, interval = 10000, state, onError = con
 	function buildChReqs(type, ids) {
 		const requests = []
 
-		for (const id of ids) {
+		for (const [id] of ids) {
+			console.log('buildChReqs - type:', type, 'id:', id)
 			requests.push(requestLevelInfo(type, id), requestMuteInfo(type, id))
 		}
 
