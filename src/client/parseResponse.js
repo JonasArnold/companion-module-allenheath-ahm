@@ -1,6 +1,18 @@
 import { ChannelType } from '../utility/constants.js'
 import { getVarNameInputLevel, getVarNameZoneLevel, getVarNameCGLevel, getDbuValue } from '../utility/helpers.js'
 
+const LEVEL_HANDLERS = {
+	0xb0: { type: ChannelType.Input, getVarName: getVarNameInputLevel, feedback: 'inputLevel', label: 'Input' },
+	0xb0: { type: ChannelType.Zone, getVarName: getVarNameZoneLevel, feedback: 'zoneLevel', label: 'Zone' },
+	0xb0: { type: ChannelType.ControlGroup, getVarName: getVarNameCGLevel, feedback: 'cgLevel', label: 'Control Group' },
+}
+
+const MUTE_HANDLERS = {
+	0x90: { type: ChannelType.Input, feedback: 'inputMute' },
+	0x91: { type: ChannelType.Input, feedback: 'zoneMute' },
+	0x92: { type: ChannelType.Input, feedback: 'cgMute' },
+}
+
 export function parseResponse(data, { companion }, state, poller) {
 	console.log('INCOMING RAW:', data.toString('hex'))
 
@@ -26,18 +38,8 @@ export function parseResponse(data, { companion }, state, poller) {
 
 		if (data[9] === 0x03) {
 			// receiving send mute data
-			let mute
-
-			switch (data[13]) {
-				case 127:
-					mute = true
-					break
-				case 63:
-					mute = false
-					break
-				default:
-					break
-			}
+			let mute = data[13] === 127 ? true : data[13] === 63 ? false : undefined
+			if (mute === undefined) return
 
 			state.setSend(ChannelType.Input, inputNum, zoneNum, undefined, mute)
 			companion.log(
@@ -52,101 +54,35 @@ export function parseResponse(data, { companion }, state, poller) {
 
 	if (data[1] === 0x63 && data[3] === 0x62) {
 		// second value of hex:63 and fourth value of hex:62 means level data
+		const handler = LEVEL_HANDLERS[data[0]]
+		if (!handler) return
 
 		// Data shared across all channel types:
 		let channel = parseInt(data[2])
 		let level = parseInt(data[6])
+		let variableName = handler.getVarName(channel)
 
-		if (data[0] === 0xb0) {
-			// first value of hex:b0 means channel level data
-			let variableNameInput = getVarNameInputLevel(channel)
-			console.log('parseResponse level - channel:', channel, 'has in state:', state.trackedChannels[0].has(channel))
-
-			companion.log(
-				'info',
-				`Input ${channel} has new level: ${level} (dec) = ${getDbuValue(level)} (dBu), changing variable ${variableNameInput}`,
-			)
-
-			// Put value in state store if it's being tracked
-			state.setChannel(ChannelType.Input, channel, level, undefined)
-
-			companion.setVariableValues({ [variableNameInput]: getDbuValue(level) })
-			companion.checkFeedbacks('inputLevel')
-			return
-		}
-		if (data[0] === 0xb1) {
-			// first value of hex:b1 means zone level data
-			let variableNameZone = getVarNameZoneLevel(channel)
-
-			companion.log(
-				'info',
-				`Zone ${channel} has new level: ${level} (dec) = ${getDbuValue(level)} (dBu), changing variable ${variableNameZone}`,
-			)
-
-			// Put value in state store if it's being tracked
-			state.setChannel(ChannelType.Zone, channel, level, undefined)
-
-			companion.setVariableValues({ [variableNameZone]: getDbuValue(level) })
-			companion.checkFeedbacks('zoneLevel')
-			return
-		}
-		if (data[0] === 0xb2) {
-			// first value of hex:b2 means control group level data
-			let variableNameCG = getVarNameCGLevel(channel)
-
-			companion.log(
-				'info',
-				`Control Group ${channel} has new level: ${level} (dec) = ${getDbuValue(level)} (dBu), changing variable ${variableNameCG}`,
-			)
-
-			// Put value in state store if it's being tracked
-			state.setChannel(ChannelType.ControlGroup, channel, level, undefined)
-
-			companion.setVariableValues({ [variableNameCG]: getDbuValue(level) })
-			companion.checkFeedbacks('cgLevel')
-			return
-		}
+		companion.log(
+			'info',
+			`${handler.label} ${channel} has new level: ${level} (dec) = ${getDbuValue(level)} (dBu), changing variable ${variableName}`,
+		)
+		state.setChannel(handler.type, channel, level, undefined)
+		companion.checkFeedbacks(handler.feedback)
+		return
 	}
 
 	if (data[0] === 0x90 || data[0] === 0x91 || data[0] === 0x92) {
 		// first value of hex:90, hex:91, or hex:92 means mute of some kind
-		let mute
+		const handler = MUTE_HANDLERS[data[0]]
 		let channel = parseInt(data[1])
-		console.log('INCOMING MUTE DATA:', data[0], channel)
+		let mute = data[2] === 127 ? true : data[2] === 63 ? false : undefined
+		console.log('INCOMING MUTE DATA:', data[0], channel, mute)
 
-		switch (data[2]) {
-			case 127:
-				mute = true
-				break
-			case 63:
-				mute = false
-				break
-			default:
-				break
-		}
+		if (!handler || mute === undefined) return
 
-		if (data[0] === 0x90) {
-			// first value of hex:90 means channel mute
-			state.setChannel(ChannelType.Input, channel, undefined, mute)
-
-			companion.checkFeedbacks('inputMute')
-			console.log('FINAL STATE', state.getMute(ChannelType.Input, channel), channel)
-			return
-		}
-		if (data[0] === 0x91) {
-			// first value of hex:91 means zone mute
-			state.setChannel(ChannelType.Zone, channel, undefined, mute)
-
-			companion.checkFeedbacks('zoneMute')
-			return
-		}
-		if (data[0] === 0x92) {
-			// first value of hex:92 means channel group mute
-			state.setChannel(ChannelType.ControlGroup, channel, undefined, mute)
-
-			companion.checkFeedbacks('cgMute')
-			return
-		}
+		state.setChannel(handler.type, channel, undefined, mute)
+		companion.checkFeedbacks(handler.feedback)
+		return
 	}
 
 	if (data[0] === 0xb0 && data[3] === 0xc0) {
