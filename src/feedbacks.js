@@ -36,7 +36,9 @@ export function getFeedbacks(state, tcpClient, numberOfIO) {
 		},
 		unsubscribe: (feedback) => {
 			let input = parseInt(feedback.options.input)
-			state.removeChannel(ChannelType.Input, input)
+			if (!state.isManuallyTracked(ChannelType.Input, input)) {
+				state.removeChannel(ChannelType.Input, input)
+			}
 		},
 	}
 
@@ -70,7 +72,9 @@ export function getFeedbacks(state, tcpClient, numberOfIO) {
 		},
 		unsubscribe: (feedback) => {
 			let input = parseInt(feedback.options.input)
-			state.removeChannel(ChannelType.Input, input)
+			if (!state.isManuallyTracked(ChannelType.Input, input)) {
+				state.removeChannel(ChannelType.Input, input)
+			}
 		},
 	}
 
@@ -101,7 +105,9 @@ export function getFeedbacks(state, tcpClient, numberOfIO) {
 		},
 		unsubscribe: (feedback) => {
 			let zone = parseInt(feedback.options.zone)
-			state.removeChannel(ChannelType.Zone, zone)
+			if (!state.isManuallyTracked(ChannelType.Zone, zone)) {
+				state.removeChannel(ChannelType.Zone, zone)
+			}
 		},
 	}
 
@@ -135,7 +141,9 @@ export function getFeedbacks(state, tcpClient, numberOfIO) {
 		},
 		unsubscribe: (feedback) => {
 			let zone = parseInt(feedback.options.zone)
-			state.removeChannel(ChannelType.Zone, zone)
+			if (!state.isManuallyTracked(ChannelType.Zone, zone)) {
+				state.removeChannel(ChannelType.Zone, zone)
+			}
 		},
 	}
 
@@ -166,7 +174,9 @@ export function getFeedbacks(state, tcpClient, numberOfIO) {
 		},
 		unsubscribe: (feedback) => {
 			let cg = parseInt(feedback.options.cg)
-			state.removeChannel(ChannelType.ControlGroup, cg)
+			if (!state.isManuallyTracked(ChannelType.ControlGroup, cg)) {
+				state.removeChannel(ChannelType.ControlGroup, cg)
+			}
 		},
 	}
 
@@ -200,7 +210,9 @@ export function getFeedbacks(state, tcpClient, numberOfIO) {
 		},
 		unsubscribe: (feedback) => {
 			let cg = parseInt(feedback.options.cg)
-			state.removeChannel(ChannelType.ControlGroup, cg)
+			if (!state.isManuallyTracked(ChannelType.ControlGroup, cg)) {
+				state.removeChannel(ChannelType.ControlGroup, cg)
+			}
 		},
 	}
 
@@ -270,7 +282,14 @@ export function getFeedbacks(state, tcpClient, numberOfIO) {
 		callback: (feedback, bank) => {
 			let input = parseInt(feedback.options.input)
 			let zone = parseInt(feedback.options.zone)
-			console.log('inputToZoneLevel feedback - input:', input, 'zone:', zone, 'level:', state.getSendLevel(ChannelType.Input, input, zone))
+			console.log(
+				'inputToZoneLevel feedback - input:',
+				input,
+				'zone:',
+				zone,
+				'level:',
+				state.getSendLevel(ChannelType.Input, input, zone),
+			)
 
 			const { isNew } = state.addSend(ChannelType.Input, input, zone)
 			if (isNew) {
