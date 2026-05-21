@@ -14,8 +14,8 @@ const PLAYBACK_COUNT = 127
 /**
  * Builds dropdown options for Companion Actions
  * @param {String} name - leading text for dropdown options
- * @param {Number} qty 
- * @param {Number} offset 
+ * @param {Number} qty
+ * @param {Number} offset
  * @returns {Object[]}
  */
 function listOptions(name, qty, offset) {
@@ -34,8 +34,8 @@ function listOptions(name, qty, offset) {
 /**
  * Builds Companion Action Options for mute actions
  * @param {String} name - leading text for dropdown options
- * @param {Number} qty 
- * @param {Number} offset 
+ * @param {Number} qty
+ * @param {Number} offset
  * @returns {Object[]}
  */
 function muteOptions(name, qty, offset) {
@@ -60,8 +60,8 @@ function muteOptions(name, qty, offset) {
 /**
  * Builds Companion Action Options for set level actions
  * @param {String} name - leading text for dropdown options
- * @param {Number} qty 
- * @param {Number} offset 
+ * @param {Number} qty
+ * @param {Number} offset
  * @returns {Object[]}
  */
 function setLevelOptions(name, qty, offset) {
@@ -87,8 +87,8 @@ function setLevelOptions(name, qty, offset) {
 /**
  * Builds Companion Action Options for inc/dec level actions
  * @param {String} name - leading text for dropdown options
- * @param {Number} qty 
- * @param {Number} offset 
+ * @param {Number} qty
+ * @param {Number} offset
  * @returns {Object[]}
  */
 function incDecOptions(name, qty, offset) {
@@ -117,8 +117,8 @@ function incDecOptions(name, qty, offset) {
 /**
  * Builds Companion Action Options for playback actions
  * @param {String} name - leading text for dropdown options
- * @param {Number} qty 
- * @param {Number} offset 
+ * @param {Number} qty
+ * @param {Number} offset
  * @returns {Object[]}
  */
 function playbackChannelOptions(name) {
@@ -133,7 +133,6 @@ function playbackChannelOptions(name) {
 		},
 	]
 }
-
 
 export function getActions(tcpClient, state, numberOfInputs, numberOfZones, { companion }) {
 	let actions = {}
@@ -275,23 +274,33 @@ export function getActions(tcpClient, state, numberOfInputs, numberOfZones, { co
 		options: incDecOptions('Input', numberOfInputs, -1).concat(listOptions('Zone', numberOfZones, -1)),
 		callback: (action) => {
 			tcpClient.queue(incDecSendLevelCallback(action, SendType.InputToZone))
-			tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.LEVEL, 
-				parseInt(action.options.incdec_ch_number), 
-				parseInt(action.options.number)))
+			tcpClient.queue(
+				requestSendInfo(
+					SendType.InputToZone,
+					SendInfoType.LEVEL,
+					parseInt(action.options.incdec_ch_number),
+					parseInt(action.options.number),
+				),
+			)
 		},
 	}
-
+	
 	actions['inc_dec_zn_zn_send_level'] = {
 		name: 'Increment/Decrement Zone to Zone Send Level',
 		options: incDecOptions('Zone', numberOfZones, -1).concat(listOptions('Zone', numberOfZones, -1)),
 		callback: (action) => {
 			tcpClient.queue(incDecSendLevelCallback(action, SendType.ZoneToZone))
-			tcpClient.queue(requestSendInfo(SendType.ZoneToZone, SendInfoType.LEVEL, 
-				parseInt(action.options.incdec_ch_number), 
-				parseInt(action.options.number)))
+			tcpClient.queue(
+				requestSendInfo(
+					SendType.ZoneToZone,
+					SendInfoType.LEVEL,
+					parseInt(action.options.incdec_ch_number),
+					parseInt(action.options.number),
+				),
+			)
 		},
-	},
-
+	}
+	
 	// Control Group actions
 	actions['set_level_controlgroup'] = {
 		name: 'Set Level of Control Group',
