@@ -284,7 +284,7 @@ export function getActions(tcpClient, state, numberOfInputs, numberOfZones, { co
 			)
 		},
 	}
-	
+
 	actions['inc_dec_zn_zn_send_level'] = {
 		name: 'Increment/Decrement Zone to Zone Send Level',
 		options: incDecOptions('Zone', numberOfZones, -1).concat(listOptions('Zone', numberOfZones, -1)),
@@ -300,7 +300,7 @@ export function getActions(tcpClient, state, numberOfInputs, numberOfZones, { co
 			)
 		},
 	}
-	
+
 	// Control Group actions
 	actions['set_level_controlgroup'] = {
 		name: 'Set Level of Control Group',
