@@ -189,7 +189,7 @@ export const Colors = {
  */
 export const Priority = {
 	HIGH: 0,
-	LOW: 1
+	LOW: 1,
 }
 
 /**

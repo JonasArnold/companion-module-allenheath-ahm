@@ -102,6 +102,6 @@ export function pollStateTimer(getSocket, interval = 10000, state, onError = con
 	return {
 		start,
 		stop,
-		poll
+		poll,
 	}
 }

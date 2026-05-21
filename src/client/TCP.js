@@ -78,11 +78,11 @@ export function TCPClient({ companion }, state, reqTime, poller) {
 
 	/**
 	 * Queues MIDI packet for sending
-	 * @param {Buffer} buffers 
+	 * @param {Buffer} buffers
 	 * @param {Priority} priority - defaults to high unless specified
 	 */
 	function queue(buffers, priority = Priority.HIGH) {
-		txQueue.push({buffers, priority, timestamp: Date.now()})
+		txQueue.push({ buffers, priority, timestamp: Date.now() })
 
 		if (priority === Priority.HIGH) {
 			holdPolling(200)
@@ -97,7 +97,7 @@ export function TCPClient({ companion }, state, reqTime, poller) {
 		queueRunning = true
 
 		while (txQueue.length > 0) {
-			// txQueue.sort((a, b) => 
+			// txQueue.sort((a, b) =>
 			// 	a.priority !== b.priority
 			// 		? a.priority - b.priority
 			// 		: a.timestamp - b.timestamp

@@ -32,7 +32,7 @@ export function createManualTracking(state) {
 	 * @returns {Boolean}
 	 */
 	function isManuallyTracked(type, id) {
-		return state.manuallyTrackedChannels[type]?.includes(id) ?? False
+		return state.manuallyTrackedChannels[type]?.includes(id) ?? false
 	}
 
 	return {

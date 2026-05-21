@@ -95,7 +95,7 @@ export function createAutoTracking(state) {
 			channel.sends = new Map()
 		}
 		const isNew = !channel.sends?.has(idTo)
-		
+
 		const existing = channel.sends.get(idTo)
 		console.log('addSend - existing:', existing, 'initialized:', existing?.initialized)
 
@@ -103,7 +103,7 @@ export function createAutoTracking(state) {
 			channel.sends.set(idTo, {
 				level: 0,
 				mute: false,
-				initialized: false
+				initialized: false,
 			})
 		}
 
@@ -133,12 +133,23 @@ export function createAutoTracking(state) {
 	 * @param {Boolean} mute
 	 */
 	function setSend(type, idFrom, idTo, level, mute) {
-		const {send} = addSend(type, idFrom, idTo)
+		const { send } = addSend(type, idFrom, idTo)
 
 		if (level !== undefined) send.level = level
 		if (mute !== undefined) send.mute = mute
 		send.initialized = true
-		console.log('setSend - type:', type, 'idFrom:', idFrom, 'idTo:', idTo, 'level:', send.level, 'initialized:', send.initialized)
+		console.log(
+			'setSend - type:',
+			type,
+			'idFrom:',
+			idFrom,
+			'idTo:',
+			idTo,
+			'level:',
+			send.level,
+			'initialized:',
+			send.initialized,
+		)
 	}
 
 	/**

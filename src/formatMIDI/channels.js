@@ -75,21 +75,7 @@ export function setLevelCallback(action, type) {
 	let levelDec = parseInt(action.options.level)
 	console.log('chNumber', action.options.setlvl_ch_number)
 
-	return [
-		Buffer.from([
-			typeHex,
-			0x63,
-			chNumber,
-			
-			typeHex,
-			0x62,
-			0x17,
-			
-			typeHex,
-			0x06,
-			levelDec
-		]),
-	]
+	return [Buffer.from([typeHex, 0x63, chNumber, typeHex, 0x62, 0x17, typeHex, 0x06, levelDec])]
 }
 
 /**
@@ -108,7 +94,7 @@ export function incDecLevelCallback(action, type) {
 	let chNumber = parseInt(action.options.incdec_ch_number)
 	let incdecSelector = action.options.incdec == 'inc' ? 0x7f : 0x3f
 
-	console.log('incDecCallback: ', type, chNumber, incdecSelector)  // numbers are correct here
+	console.log('incDecCallback: ', type, chNumber, incdecSelector) // numbers are correct here
 
 	return [
 		Buffer.from([
