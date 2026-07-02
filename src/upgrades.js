@@ -77,4 +77,34 @@ export default [
 
 		return changes
 	},
+	function v3_0_0(context, props) {
+		let changes = {
+			updatedConfig: null,
+			updatedActions: [],
+			updatedFeedbacks: [],
+		}
+
+		// update config
+		if (props.config) {
+			let config = props.config
+
+			// moving from 'ahm16' to '16', etc.
+			if (config.ahm_type == 'ahm16') {
+				config.ahm_type = '16'
+			}
+			if (config.ahm_type == 'ahm32') {
+				config.ahm_type = '32'
+			}
+			if (config.ahm_type == 'ahm64') {
+				config.ahm_type = '64'
+			}
+
+			// manually set refresh rate upon upgrade
+			config.pollRate = 10000
+
+			changes.updatedConfig = config
+		}
+
+		return changes
+	},
 ]
