@@ -9,8 +9,8 @@ const LEVEL_HANDLERS = {
 
 const MUTE_HANDLERS = {
 	0x90: { type: ChannelType.Input, feedback: 'inputMute' },
-	0x91: { type: ChannelType.Input, feedback: 'zoneMute' },
-	0x92: { type: ChannelType.Input, feedback: 'cgMute' },
+	0x91: { type: ChannelType.Zone, feedback: 'zoneMute' },
+	0x92: { type: ChannelType.ControlGroup, feedback: 'cgMute' },
 }
 
 export function parseResponse(data, { companion }, state, poller) {
@@ -67,6 +67,7 @@ export function parseResponse(data, { companion }, state, poller) {
 			`${handler.label} ${channel} has new level: ${level} (dec) = ${getDbuValue(level)} (dBu), changing variable ${variableName}`,
 		)
 		state.setChannel(handler.type, channel, level, undefined)
+		companion.setVariableValues({ [variableName]: getDbuValue(level) })
 		companion.checkFeedbacks(handler.feedback)
 		return
 	}
