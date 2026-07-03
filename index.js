@@ -9,6 +9,7 @@ import { configFields } from './src/config.js'
 import { trackAHMParams } from './src/state/AHMState.js'
 import { TCPClient } from './src/client/TCP.js'
 import { pollStateTimer } from './src/client/pollState.js'
+import { initContext } from './src/context.js'
 
 const MIDI_PORT = 51325
 const TIME_BETW_MULTIPLE_REQ_MS = 150
@@ -42,24 +43,24 @@ class AHMInstance extends InstanceBase {
 		this.pollState = pollStateTimer(
 			() => this.tcpClient,
 			this.config.pollRate,
-			this.AHMState,
 			(err) => console.error('Poller error:', err),
 		)
 
 		// Assign TCP client
-		this.tcpClient = TCPClient(
-			{
-				companion: {
-					checkFeedbacks: (...a) => this.checkFeedbacks(...a),
-					log: (...a) => this.log(...a),
-					updateStatus: (...a) => this.updateStatus(...a),
-					setVariableValues: (...a) => this.setVariableValues(...a),
-				},
-			},
-			this.AHMState,
-			TIME_BETW_MULTIPLE_REQ_MS,
-			this.pollState,
-		)
+		this.tcpClient = TCPClient(TIME_BETW_MULTIPLE_REQ_MS)
+
+        // Register everything in context before initializing Companion definitions
+        initContext({
+            tcpClient: this.tcpClient,
+            state: this.AHMState,
+            companion: {
+                checkFeedbacks: (...a) => this.checkFeedbacks(...a),
+                log: (...a) => this.log(...a),
+                updateStatus: (...a) => this.updateStatus(...a),
+                setVariableValues: (...a) => this.setVariableValues(...a),
+            },
+            poller: this.pollState,
+        })
 
 		// Polling callback hooks
 		this.tcpClient.onConnected(() => {
@@ -104,9 +105,22 @@ class AHMInstance extends InstanceBase {
 		this.pollState = pollStateTimer(
 			() => this.tcpClient,
 			this.config.pollRate,
-			this.AHMState,
 			(err) => console.error('Poller error:', err),
 		)
+
+        // Re-register context with updated references
+        initContext({
+            tcpClient: this.tcpClient,
+            state: this.AHMState,
+            companion: {
+                checkFeedbacks: (...a) => this.checkFeedbacks(...a),
+                log: (...a) => this.log(...a),
+                updateStatus: (...a) => this.updateStatus(...a),
+                setVariableValues: (...a) => this.setVariableValues(...a),
+            },
+            poller: this.pollState,
+        })
+
 		this.initActions()
 		this.initVariables()
 		this.tcpClient.init(this.config.host, MIDI_PORT)
@@ -127,7 +141,7 @@ class AHMInstance extends InstanceBase {
 	}
 
 	initFeedbacks() {
-		this.setFeedbackDefinitions(getFeedbacks(this.AHMState, this.tcpClient, this.numberOfInputs))
+		this.setFeedbackDefinitions(getFeedbacks(this.numberOfInputs))
 	}
 
 	initPresets() {
@@ -135,13 +149,7 @@ class AHMInstance extends InstanceBase {
 	}
 
 	initActions() {
-		this.setActionDefinitions(
-			getActions(this.tcpClient, this.AHMState, this.numberOfInputs, this.numberOfZones, {
-				companion: {
-					checkFeedbacks: (...a) => this.checkFeedbacks(...a),
-				},
-			}),
-		)
+		this.setActionDefinitions(getActions(this.numberOfInputs, this.numberOfZones))
 	}
 }
 

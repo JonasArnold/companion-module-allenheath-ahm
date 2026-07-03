@@ -2,15 +2,14 @@ import { TCPHelper, InstanceStatus, InstanceBase } from '@companion-module/base'
 import { parseResponse } from './parseResponse.js'
 import { sleep } from '../utility/helpers.js'
 import { Priority } from '../utility/constants.js'
+import { getContext } from '../context.js'
 
 /**
  * TCP Client factory function. Creates TCP client and handles request queueing, sending, and receiving.
- * @param {InstanceBase} companion
- * @param {*} state
  * @param {Number} reqTime - Time between queued requests in ms
  * @returns {Function[]} Returns helper functions
  */
-export function TCPClient({ companion }, state, reqTime, poller) {
+export function TCPClient(reqTime) {
 	let midiSocket
 	let txQueue = []
 	let queueRunning = false
@@ -32,6 +31,8 @@ export function TCPClient({ companion }, state, reqTime, poller) {
 
 		if (!host || !port) return
 
+		const { companion, state, poller } = getContext()
+
 		midiSocket = new TCPHelper(host, port)
 
 		midiSocket.on('status_change', (status, message) => {
@@ -50,7 +51,7 @@ export function TCPClient({ companion }, state, reqTime, poller) {
 		})
 
 		midiSocket.on('data', (data) => {
-			parseResponse(data, { companion }, state, poller)
+			parseResponse(data)
 		})
 
 		midiSocket.on('connect', () => {
@@ -92,6 +93,9 @@ export function TCPClient({ companion }, state, reqTime, poller) {
 	}
 
 	async function startQueue() {
+		const { companion } = getContext()
+		if ( !isConnected ) return
+
 		// if queue is already running, let it be
 		if (queueRunning) return
 		queueRunning = true
@@ -119,6 +123,9 @@ export function TCPClient({ companion }, state, reqTime, poller) {
 	}
 
 	function send(buffers) {
+		const { companion } = getContext()
+		if ( !isConnected ) return
+
 		if (buffers.length !== 0) {
 			for (let i = 0; i < buffers.length; i++) {
 				if (!midiSocket) return

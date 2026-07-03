@@ -2,16 +2,17 @@ import { ChannelType, Priority, SendInfoType, SendType } from '../utility/consta
 import { sleep } from '../utility/helpers.js'
 import { requestLevelInfo, requestMuteInfo } from '../formatMIDI/channels.js'
 import { requestSendInfo } from '../formatMIDI/sends.js'
+import { getContext } from '../context.js'
 
 /**
  * AHM state polling factory function.
  * @param {*} socket
  * @param {Number} interval - Poll rate in ms
- * @param {*} state
  * @param {*} onError
  * @returns {Function[]}
  */
-export function pollStateTimer(getSocket, interval = 10000, state, onError = console.error) {
+export function pollStateTimer(getSocket, interval = 10000, onError = console.error) {
+	const { state } = getContext()
 	let stopped = false
 	let timeout = null
 

@@ -1,10 +1,11 @@
 import { ChannelType } from '../utility/constants.js'
 import { getVarNameInputLevel, getVarNameZoneLevel, getVarNameCGLevel, getDbuValue } from '../utility/helpers.js'
+import { getContext } from '../context.js'
 
 const LEVEL_HANDLERS = {
 	0xb0: { type: ChannelType.Input, getVarName: getVarNameInputLevel, feedback: 'inputLevel', label: 'Input' },
-	0xb0: { type: ChannelType.Zone, getVarName: getVarNameZoneLevel, feedback: 'zoneLevel', label: 'Zone' },
-	0xb0: { type: ChannelType.ControlGroup, getVarName: getVarNameCGLevel, feedback: 'cgLevel', label: 'Control Group' },
+	0xb1: { type: ChannelType.Zone, getVarName: getVarNameZoneLevel, feedback: 'zoneLevel', label: 'Zone' },
+	0xb2: { type: ChannelType.ControlGroup, getVarName: getVarNameCGLevel, feedback: 'cgLevel', label: 'Control Group' },
 }
 
 const MUTE_HANDLERS = {
@@ -13,7 +14,8 @@ const MUTE_HANDLERS = {
 	0x92: { type: ChannelType.ControlGroup, feedback: 'cgMute' },
 }
 
-export function parseResponse(data, { companion }, state, poller) {
+export function parseResponse(data) {
+	const { companion, state, poller } = getContext()
 	console.log('INCOMING RAW:', data.toString('hex'))
 
 	if (data[0] === 0xf0) {
@@ -72,7 +74,7 @@ export function parseResponse(data, { companion }, state, poller) {
 		return
 	}
 
-	if (data[0] === 0x90 || data[0] === 0x91 || data[0] === 0x92) {
+	if (data[0] in MUTE_HANDLERS) {
 		// first value of hex:90, hex:91, or hex:92 means mute of some kind
 		const handler = MUTE_HANDLERS[data[0]]
 		let channel = parseInt(data[1])

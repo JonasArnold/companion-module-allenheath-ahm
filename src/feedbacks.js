@@ -2,8 +2,10 @@ import { Colors, SendType, MonitoredFeedbackType, ChannelType, SendInfoType } fr
 import { getDbuValue, getChoicesArrayWithIncrementingNumbers } from './utility/helpers.js'
 import { requestSendInfo } from './formatMIDI/sends.js'
 import { requestLevelInfo, requestMuteInfo } from './formatMIDI/channels.js'
+import { getContext } from './context.js'
 
-export function getFeedbacks(state, tcpClient, numberOfIO) {
+export function getFeedbacks(numberOfIO) {
+	const { tcpClient, state } = getContext()
 	const feedbacks = {}
 
 	feedbacks['inputMute'] = {

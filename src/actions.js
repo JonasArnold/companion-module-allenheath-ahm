@@ -7,6 +7,7 @@ import { ChannelType, SendType, SendInfoType, dbu_Values, PlaybackChannel } from
 import { setLevelCallback, incDecLevelCallback, requestLevelInfo, requestMuteInfo } from './formatMIDI/channels.js'
 import { requestSendInfo, incDecSendLevelCallback, setInputToZoneMute } from './formatMIDI/sends.js'
 import { setPlaybackTrack } from './formatMIDI/playback.js'
+import { getContext } from './context.js'
 
 const PRESET_COUNT = 500
 const PLAYBACK_COUNT = 127
@@ -134,7 +135,8 @@ function playbackChannelOptions(name) {
 	]
 }
 
-export function getActions(tcpClient, state, numberOfInputs, numberOfZones, { companion }) {
+export function getActions(numberOfInputs, numberOfZones) {
+	const { companion, state, tcpClient } = getContext()
 	let actions = {}
 
 	actions['mute_input'] = {
