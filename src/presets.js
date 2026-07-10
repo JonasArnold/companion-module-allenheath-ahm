@@ -46,7 +46,7 @@ export function getPresets(numberOfInputs, numberOfZones) {
 				{
 					feedbackId: 'inputMute',
 					options: {
-						input: index + 1,
+						input: index,
 					},
 					style: {
 						color: Colors.White,
@@ -100,7 +100,7 @@ export function getPresets(numberOfInputs, numberOfZones) {
 				{
 					feedbackId: 'zoneMute',
 					options: {
-						zone: parseInt(index) + 1,
+						zone: parseInt(index),
 					},
 					style: {
 						color: Colors.White,
@@ -154,7 +154,7 @@ export function getPresets(numberOfInputs, numberOfZones) {
 				{
 					feedbackId: 'cgMute',
 					options: {
-						cg: parseInt(index) + 1,
+						cg: parseInt(index),
 					},
 					style: {
 						color: Colors.White,
@@ -211,8 +211,8 @@ export function getPresets(numberOfInputs, numberOfZones) {
 					{
 						feedbackId: 'inputToZoneMute',
 						options: {
-							input: parseInt(input) + 1,
-							zone: zone + 1,
+							input: parseInt(input),
+							zone: zone,
 						},
 						style: {
 							color: Colors.White,
