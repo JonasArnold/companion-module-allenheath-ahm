@@ -10,7 +10,6 @@ import { parseIDsToArray, getVarNameInputLevel, getVarNameZoneLevel, getVarNameC
 export function getVariables(manTrackInputs, manTrackZones, manTrackCGs) {
 	const variableDefinitions = []
 	const variableInitValuesArray = []
-	console.log('mantrackins', manTrackInputs, typeof manTrackInputs)
 
 	const cleanManIns = parseIDsToArray(manTrackInputs)
 	const cleanManZones = parseIDsToArray(manTrackZones)

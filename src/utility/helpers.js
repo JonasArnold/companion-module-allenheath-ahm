@@ -114,15 +114,6 @@ export function getSendChTypeOfSendType(sendType) {
 }
 
 /**
- * Get Javascript promise to sleep for a certain duration of time
- * @param {Number} ms - time in milliseconds
- * @returns {Promise}
- */
-export function sleep(ms) {
-	return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
-/**
  * Return corresponding dBu Value to decimal number
  * @param {*} dezValue
  * @returns
@@ -136,13 +127,15 @@ export function getDbuValue(dezValue) {
 }
 
 /**
- * Take a string of comma-sperated ids and turn them into an array
+ * Take a string of comma-separated ids and turn them into an array
  * @param {String} ids
  * @returns {Number[]}
  */
 export function parseIDsToArray(ids) {
 	return String(ids ?? '')
 		.split(',')
-		.map((x) => Number(x.trim()))
+		.map((x) => x.trim())
+		.filter((x) => x !== '') // remove empty strings so empty not interpreted as "channel 0"
+		.map((x) => Number(x))
 		.filter((x) => Number.isFinite(x))
 }
