@@ -1,6 +1,5 @@
 import { TCPHelper, InstanceStatus, InstanceBase } from '@companion-module/base'
 import { parseResponse } from './parseResponse.js'
-import { sleep } from '../utility/helpers.js'
 import { Priority } from '../utility/constants.js'
 import { getContext } from '../context.js'
 
@@ -17,6 +16,7 @@ export function TCPClient(reqTime) {
 	let onConnectedCallback
 	let onDisconnectCallback
 	let pollHoldUntil = 0
+	let cancelSleep = null
 
 	function destroy() {
 		if (!midiSocket) return
@@ -83,12 +83,16 @@ export function TCPClient(reqTime) {
 	 * @param {Priority} priority - defaults to high unless specified
 	 */
 	function queue(buffers, priority = Priority.HIGH) {
-		txQueue.push({ buffers, priority, timestamp: Date.now() })
-
 		if (priority === Priority.HIGH) {
+			txQueue.unshift({ buffers, priority, timestamp: Date.now() })
 			holdPolling(200)
+			if (cancelSleep) {
+				cancelSleep()
+				cancelSleep = null
+			}
+		} else {
+			txQueue.push({ buffers, priority, timestamp: Date.now() })
 		}
-
 		startQueue()
 	}
 
@@ -101,12 +105,6 @@ export function TCPClient(reqTime) {
 		queueRunning = true
 
 		while (txQueue.length > 0) {
-			// txQueue.sort((a, b) =>
-			// 	a.priority !== b.priority
-			// 		? a.priority - b.priority
-			// 		: a.timestamp - b.timestamp
-			// )
-
 			const txBuffer = txQueue.shift()
 			if (!txBuffer) continue
 
@@ -116,7 +114,11 @@ export function TCPClient(reqTime) {
 				companion.log('error', 'Buffer sending error: ' + e)
 			}
 
-			await sleep(reqTime)
+			await new Promise((resolve) => {
+				cancelSleep = resolve
+				setTimeout(resolve, reqTime)
+			})
+			cancelSleep = null
 		}
 
 		queueRunning = false
@@ -131,7 +133,7 @@ export function TCPClient(reqTime) {
 				if (!midiSocket) return
 				companion.log('debug', `sending ${buffers[i].toString('hex')} via MIDI TCP`)
 				midiSocket.send(buffers[i])
-				console.log('send', buffers.length, Date.now())
+				companion.log('debug', `2. Sending at: ${Date.now()} -- ${buffers[i].toString('hex')}`)
 			}
 		}
 	}

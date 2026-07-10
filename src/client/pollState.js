@@ -1,5 +1,4 @@
 import { ChannelType, Priority, SendInfoType, SendType } from '../utility/constants.js'
-import { sleep } from '../utility/helpers.js'
 import { requestLevelInfo, requestMuteInfo } from '../formatMIDI/channels.js'
 import { requestSendInfo } from '../formatMIDI/sends.js'
 import { getContext } from '../context.js'
@@ -12,12 +11,12 @@ import { getContext } from '../context.js'
  * @returns {Function[]}
  */
 export function pollStateTimer(getSocket, interval = 10000, onError = console.error) {
-	const { state } = getContext()
 	let stopped = false
 	let timeout = null
 
 	async function tick() {
 		if (stopped) return
+		const { state } = getContext()
 
 		try {
 			const socket = getSocket()
