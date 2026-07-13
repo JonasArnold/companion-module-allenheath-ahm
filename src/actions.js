@@ -207,8 +207,11 @@ export function getActions(numberOfInputs, numberOfZones) {
 		name: 'Set Level of Input',
 		options: setLevelOptions('Input', numberOfInputs, -1),
 		callback: (action) => {
+			console.log("Sending level set request, " + action.options.setlvl_ch_number + Date.now())
 			tcpClient.queue(setLevelCallback(action, ChannelType.Input))
-			tcpClient.queue(requestLevelInfo(ChannelType.Input, action.options.setlvl_ch_number))
+			setTimeout(() => {
+				tcpClient.queue(requestLevelInfo(ChannelType.Input, action.options.setlvl_ch_number))
+			}, 200)
 		},
 	}
 
@@ -217,7 +220,9 @@ export function getActions(numberOfInputs, numberOfZones) {
 		options: incDecOptions('Input', numberOfInputs, -1),
 		callback: (action) => {
 			tcpClient.queue(incDecLevelCallback(action, ChannelType.Input))
-			tcpClient.queue(requestLevelInfo(ChannelType.Input, action.options.setlvl_ch_number))
+			setTimeout(() => {
+				tcpClient.queue(requestLevelInfo(ChannelType.Input, action.options.setlvl_ch_number))
+			}, 200)
 		},
 	}
 
@@ -242,7 +247,9 @@ export function getActions(numberOfInputs, numberOfZones) {
 		],
 		callback: (action) => {
 			tcpClient.queue(setLevelCallback(action, ChannelType.Zone))
-			tcpClient.queue(requestLevelInfo(ChannelType.Zone, action.options.setlvl_ch_number))
+			setTimeout(() => {
+				tcpClient.queue(requestLevelInfo(ChannelType.Zone, action.options.setlvl_ch_number))
+			}, 200)
 		},
 	}
 
@@ -251,7 +258,9 @@ export function getActions(numberOfInputs, numberOfZones) {
 		options: incDecOptions('Zone', numberOfZones, -1),
 		callback: (action) => {
 			tcpClient.queue(incDecLevelCallback(action, ChannelType.Zone))
-			tcpClient.queue(requestLevelInfo(ChannelType.Zone, action.options.setlvl_ch_number))
+			setTimeout(() => {
+				tcpClient.queue(requestLevelInfo(ChannelType.Zone, action.options.setlvl_ch_number))
+			}, 200)
 		},
 	}
 
@@ -260,7 +269,9 @@ export function getActions(numberOfInputs, numberOfZones) {
 		options: setLevelOptions('Control Group', 32, -1),
 		callback: (action) => {
 			tcpClient.queue(setLevelCallback(action, ChannelType.ControlGroup))
-			tcpClient.queue(requestLevelInfo(ChannelType.ControlGroup, action.options.setlvl_ch_number))
+			setTimeout(() => {
+				tcpClient.queue(requestLevelInfo(ChannelType.ControlGroup, action.options.setlvl_ch_number))
+			}, 200)
 		},
 	}
 
@@ -269,7 +280,9 @@ export function getActions(numberOfInputs, numberOfZones) {
 		options: incDecOptions('Control Group', 32, -1),
 		callback: (action) => {
 			tcpClient.queue(incDecLevelCallback(action, ChannelType.ControlGroup))
-			tcpClient.queue(requestLevelInfo(ChannelType.ControlGroup, action.options.setlvl_ch_number))
+			setTimeout(() => {
+				tcpClient.queue(requestLevelInfo(ChannelType.ControlGroup, action.options.setlvl_ch_number))
+			}, 200)
 		},
 	}
 
@@ -312,7 +325,9 @@ export function getActions(numberOfInputs, numberOfZones) {
 			companion.checkFeedbacks('inputToZoneMute')
 
 			console.log(inputNumber, zoneNumber, SendInfoType.MUTE)
-			tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.MUTE, inputNumber, zoneNumber))
+			setTimeout(() => {
+				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.MUTE, inputNumber, zoneNumber))
+			}, 200)
 		},
 	}
 
@@ -321,14 +336,16 @@ export function getActions(numberOfInputs, numberOfZones) {
 		options: incDecOptions('Input', numberOfInputs, -1).concat(listOptions('Zone', numberOfZones, -1)),
 		callback: (action) => {
 			tcpClient.queue(incDecSendLevelCallback(action, SendType.InputToZone))
-			tcpClient.queue(
-				requestSendInfo(
-					SendType.InputToZone,
-					SendInfoType.LEVEL,
-					parseInt(action.options.incdec_ch_number),
-					parseInt(action.options.number),
-				),
-			)
+			setTimeout(() => {
+				tcpClient.queue(
+					requestSendInfo(
+						SendType.InputToZone,
+						SendInfoType.LEVEL,
+						parseInt(action.options.incdec_ch_number),
+						parseInt(action.options.number),
+					),
+				)
+			}, 200)
 		},
 	}
 
@@ -337,14 +354,16 @@ export function getActions(numberOfInputs, numberOfZones) {
 		options: incDecOptions('Zone', numberOfZones, -1).concat(listOptions('Zone', numberOfZones, -1)),
 		callback: (action) => {
 			tcpClient.queue(incDecSendLevelCallback(action, SendType.ZoneToZone))
-			tcpClient.queue(
-				requestSendInfo(
-					SendType.ZoneToZone,
-					SendInfoType.LEVEL,
-					parseInt(action.options.incdec_ch_number),
-					parseInt(action.options.number),
-				),
-			)
+			setTimeout(() => {
+				tcpClient.queue(
+					requestSendInfo(
+						SendType.ZoneToZone,
+						SendInfoType.LEVEL,
+						parseInt(action.options.incdec_ch_number),
+						parseInt(action.options.number),
+					),
+				)				
+			}, 200)
 		},
 	}
 
