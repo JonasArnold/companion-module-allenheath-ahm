@@ -62,7 +62,7 @@ export function parseResponse(data) {
 		// Data shared across all channel types:
 		let channel = parseInt(data[2])
 		let level = parseInt(data[6])
-		let variableName = handler.getVarName(channel)
+		let variableName = handler.getVarName(channel + 1) // +1 because the channel is 0-indexed
 
 		companion.log(
 			'info',
