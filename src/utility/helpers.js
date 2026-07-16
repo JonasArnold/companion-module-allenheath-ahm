@@ -1,9 +1,9 @@
 import { InstanceBase } from '@companion-module/base'
-import { dbu_Values } from './constants.js'
+import { ChannelType, dbu_Values } from './constants.js'
 
 /**
  * Generates a Dropdown Choices Array with labelled incrementing values.
- * Example: name = "Mute Input", Qty=64, Offset=1
+ * Example: name = "Mute Input", Qty=64, Offset=-1
  * Output:
  * { id: '0', label: 'Mute Input 1' },
  * { id: '1', label: 'Mute Input 2' },
@@ -138,4 +138,14 @@ export function parseIDsToArray(ids) {
 		.filter((x) => x !== '') // remove empty strings so empty not interpreted as "channel 0"
 		.map((x) => Number(x))
 		.filter((x) => Number.isFinite(x))
+}
+
+/**
+ * Returns the channel type name for a given channel type value.
+ * @param {number} channelTypeValue Channel type value
+ * @returns {string|null}
+ */
+export function getChannelTypeName(channelTypeValue) {
+	const entry = Object.entries(ChannelType).find(([, value]) => value === channelTypeValue)
+	return entry ? entry[0] : null
 }

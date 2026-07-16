@@ -27,19 +27,21 @@ export function getFeedbacks(numberOfIO) {
 			},
 		],
 		callback: (feedback, bank) => {
-			let input = parseInt(feedback.options.input)
-			console.log('feedback log', input, feedback.options.input)
+			let inputId = parseInt(feedback.options.input)
 
-			state.addChannel(ChannelType.Input, input)
+			state.addChannel(ChannelType.Input, inputId)
 
-			let value = state.getMute(ChannelType.Input, input)
-			console.log('feedback eval:', input, value)
-			return value
+			let muteState = state.getMute(ChannelType.Input, inputId)
+			console.log('Feedback: inputMute callback -- Input: ', inputId + 1, ', state: ', muteState)
+
+			return muteState
 		},
 		unsubscribe: (feedback) => {
-			let input = parseInt(feedback.options.input)
-			if (!state.isManuallyTracked(ChannelType.Input, input)) {
-				state.removeChannel(ChannelType.Input, input)
+			let inputId = parseInt(feedback.options.input)
+			console.log('Feedback: inputMute unsubscribe -- Input: ', inputId + 1)
+
+			if (!state.isManuallyTracked(ChannelType.Input, inputId)) {
+				state.removeChannel(ChannelType.Input, inputId)
 			}
 		},
 	}
@@ -59,23 +61,26 @@ export function getFeedbacks(numberOfIO) {
 			},
 		],
 		callback: (feedback, bank) => {
-			let input = parseInt(feedback.options.input)
-			console.log('feedback log', input, feedback.options.input)
+			let inputId = parseInt(feedback.options.input)
 
-			const { isNew } = state.addChannel(ChannelType.Input, input)
+			const { isNew } = state.addChannel(ChannelType.Input, inputId)
 			if (isNew) {
 				// If new, immediately request level info
-				tcpClient.queue(requestLevelInfo(ChannelType.Input, input))
-				tcpClient.queue(requestMuteInfo(ChannelType.Input, input))
+				tcpClient.queue(requestLevelInfo(ChannelType.Input, inputId))
+				tcpClient.queue(requestMuteInfo(ChannelType.Input, inputId))
 			}
 
-			console.log('feedback getLevel ', state.getLevel(ChannelType.Input, input))
-			return getDbuValue(state.getLevel(ChannelType.Input, input))
+			let levelDec = state.getLevel(ChannelType.Input, inputId)
+			console.log('Feedback: inputLevel callback -- Input: ', inputId + 1, ', level (dec): ', levelDec, ', isNew: ', isNew)
+
+			return getDbuValue(levelDec)
 		},
 		unsubscribe: (feedback) => {
-			let input = parseInt(feedback.options.input)
-			if (!state.isManuallyTracked(ChannelType.Input, input)) {
-				state.removeChannel(ChannelType.Input, input)
+			let inputId = parseInt(feedback.options.input)
+			console.log('Feedback: inputLevel unsubscribe -- Input: ', inputId + 1)
+
+			if (!state.isManuallyTracked(ChannelType.Input, inputId)) {
+				state.removeChannel(ChannelType.Input, inputId)
 			}
 		},
 	}
@@ -99,16 +104,21 @@ export function getFeedbacks(numberOfIO) {
 			},
 		],
 		callback: (feedback, bank) => {
-			let zone = parseInt(feedback.options.zone)
-			console.log('zoneMute feedback reading - zone:', zone, 'result:', state.getMute(ChannelType.Zone, zone))
-			state.addChannel(ChannelType.Zone, zone)
+			let zoneId = parseInt(feedback.options.zone)
 
-			return state.getMute(ChannelType.Zone, zone)
+			state.addChannel(ChannelType.Zone, zoneId)
+
+			let muteState = state.getMute(ChannelType.Zone, zoneId)
+			console.log('Feedback: zoneMute callback -- Zone: ', zoneId + 1, ', state: ', muteState)
+
+			return muteState
 		},
 		unsubscribe: (feedback) => {
-			let zone = parseInt(feedback.options.zone)
-			if (!state.isManuallyTracked(ChannelType.Zone, zone)) {
-				state.removeChannel(ChannelType.Zone, zone)
+			let zoneId = parseInt(feedback.options.zone)
+			console.log('Feedback: zoneMute unsubscribe -- Zone: ', zoneId + 1)
+
+			if (!state.isManuallyTracked(ChannelType.Zone, zoneId)) {
+				state.removeChannel(ChannelType.Zone, zoneId)
 			}
 		},
 	}
@@ -128,23 +138,26 @@ export function getFeedbacks(numberOfIO) {
 			},
 		],
 		callback: (feedback, bank) => {
-			let zone = parseInt(feedback.options.zone)
-			console.log('feedback log', zone, feedback.options.zone)
+			let zoneId = parseInt(feedback.options.zone)
 
-			const { isNew } = state.addChannel(ChannelType.Zone, zone)
+			const { isNew } = state.addChannel(ChannelType.Zone, zoneId)
 			if (isNew) {
 				// If new, immediately request level info
-				tcpClient.queue(requestLevelInfo(ChannelType.Zone, zone))
-				tcpClient.queue(requestMuteInfo(ChannelType.Zone, zone))
+				tcpClient.queue(requestLevelInfo(ChannelType.Zone, zoneId))
+				tcpClient.queue(requestMuteInfo(ChannelType.Zone, zoneId))
 			}
 
-			console.log('feedback getLevel ', state.getLevel(ChannelType.Zone, zone))
-			return getDbuValue(state.getLevel(ChannelType.Zone, zone))
+			let levelDec = state.getLevel(ChannelType.Zone, zoneId)
+			console.log('Feedback: zoneLevel callback -- Zone: ', zoneId + 1, ', level (dec): ', levelDec, ', isNew: ', isNew)
+
+			return getDbuValue(levelDec)
 		},
 		unsubscribe: (feedback) => {
-			let zone = parseInt(feedback.options.zone)
-			if (!state.isManuallyTracked(ChannelType.Zone, zone)) {
-				state.removeChannel(ChannelType.Zone, zone)
+			let zoneId = parseInt(feedback.options.zone)
+			console.log('Feedback: zoneLevel unsubscribe -- Zone: ', zoneId + 1)
+
+			if (!state.isManuallyTracked(ChannelType.Zone, zoneId)) {
+				state.removeChannel(ChannelType.Zone, zoneId)
 			}
 		},
 	}
@@ -168,16 +181,21 @@ export function getFeedbacks(numberOfIO) {
 			},
 		],
 		callback: (feedback, bank) => {
-			let cg = parseInt(feedback.options.cg)
+			let controlGroupId = parseInt(feedback.options.cg)
 
-			state.addChannel(ChannelType.ControlGroup, cg)
+			state.addChannel(ChannelType.ControlGroup, controlGroupId)
 
-			return state.getMute(ChannelType.ControlGroup, cg)
+			let muteState = state.getMute(ChannelType.ControlGroup, controlGroupId)
+			console.log('Feedback: cgMute callback -- Control Group: ', controlGroupId + 1, ', state: ', muteState)
+
+			return muteState
 		},
 		unsubscribe: (feedback) => {
-			let cg = parseInt(feedback.options.cg)
-			if (!state.isManuallyTracked(ChannelType.ControlGroup, cg)) {
-				state.removeChannel(ChannelType.ControlGroup, cg)
+			let controlGroupId = parseInt(feedback.options.cg)
+			console.log('Feedback: cgMute unsubscribe -- Control Group: ', controlGroupId + 1)
+			
+			if (!state.isManuallyTracked(ChannelType.ControlGroup, controlGroupId)) {
+				state.removeChannel(ChannelType.ControlGroup, controlGroupId)
 			}
 		},
 	}
@@ -197,23 +215,26 @@ export function getFeedbacks(numberOfIO) {
 			},
 		],
 		callback: (feedback, bank) => {
-			let cg = parseInt(feedback.options.cg)
-			console.log('feedback log', cg, feedback.options.cg)
+			let controlGroupId = parseInt(feedback.options.cg)
 
-			const { isNew } = state.addChannel(ChannelType.ControlGroup, cg)
+			const { isNew } = state.addChannel(ChannelType.ControlGroup, controlGroupId)
 			if (isNew) {
 				// If new, immediately request level info
-				tcpClient.queue(requestLevelInfo(ChannelType.ControlGroup, cg))
-				tcpClient.queue(requestMuteInfo(ChannelType.ControlGroup, cg))
+				tcpClient.queue(requestLevelInfo(ChannelType.ControlGroup, controlGroupId))
+				tcpClient.queue(requestMuteInfo(ChannelType.ControlGroup, controlGroupId))
 			}
 
-			console.log('feedback getLevel ', state.getLevel(ChannelType.ControlGroup, cg))
-			return getDbuValue(state.getLevel(ChannelType.ControlGroup, cg))
+			let levelDec = state.getLevel(ChannelType.ControlGroup, controlGroupId)
+			console.log('Feedback: cgLevel callback -- Control Group: ', controlGroupId + 1, ', level (dec): ', levelDec, ', isNew: ', isNew)
+
+			return getDbuValue(levelDec)
 		},
 		unsubscribe: (feedback) => {
-			let cg = parseInt(feedback.options.cg)
-			if (!state.isManuallyTracked(ChannelType.ControlGroup, cg)) {
-				state.removeChannel(ChannelType.ControlGroup, cg)
+			let controlGroupId = parseInt(feedback.options.cg)
+			console.log('Feedback: cgLevel unsubscribe -- Control Group: ', controlGroupId + 1)
+
+			if (!state.isManuallyTracked(ChannelType.ControlGroup, controlGroupId)) {
+				state.removeChannel(ChannelType.ControlGroup, controlGroupId)
 			}
 		},
 	}
@@ -245,17 +266,29 @@ export function getFeedbacks(numberOfIO) {
 			},
 		],
 		callback: (feedback, bank) => {
-			let input = parseInt(feedback.options.input)
-			let zone = parseInt(feedback.options.zone)
+			let inputId = parseInt(feedback.options.input)
+			let zoneId = parseInt(feedback.options.zone)
 
-			state.addSend(ChannelType.Input, input, zone)
+			state.addSend(ChannelType.Input, inputId, zoneId)
 
-			return state.getSendMute(ChannelType.Input, input, zone)
+			let muteState = state.getSendMute(ChannelType.Input, inputId, zoneId)
+			console.log(
+				'Feedback: inputToZoneMute callback -- Input: ',
+				inputId + 1,
+				', Zone: ',
+				zoneId + 1,
+				', state: ',
+				muteState,
+			)
+
+			return muteState
 		},
 		unsubscribe: (feedback) => {
-			let input = parseInt(feedback.options.input)
-			let zone = parseInt(feedback.options.zone)
-			state.removeSend(ChannelType.Input, input, zone)
+			let inputId = parseInt(feedback.options.input)
+			let zoneId = parseInt(feedback.options.zone)
+			console.log('Feedback: inputToZoneMute unsubscribe -- Input: ', inputId + 1, ', Zone: ', zoneId + 1)
+			
+			state.removeSend(ChannelType.Input, inputId, zoneId)
 		},
 	}
 
@@ -282,30 +315,34 @@ export function getFeedbacks(numberOfIO) {
 			},
 		],
 		callback: (feedback, bank) => {
-			let input = parseInt(feedback.options.input)
-			let zone = parseInt(feedback.options.zone)
-			console.log(
-				'inputToZoneLevel feedback - input:',
-				input,
-				'zone:',
-				zone,
-				'level:',
-				state.getSendLevel(ChannelType.Input, input, zone),
-			)
-
-			const { isNew } = state.addSend(ChannelType.Input, input, zone)
+			let inputId = parseInt(feedback.options.input)
+			let zoneId = parseInt(feedback.options.zone)
+			
+			const { isNew } = state.addSend(ChannelType.Input, inputId, zoneId)
 			if (isNew) {
-				console.log('isNew send - input:', input, 'zone:', zone)
-				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.LEVEL, input, zone))
-				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.MUTE, input, zone))
+				console.log('isNew send - input:', inputId, 'zone:', zoneId)
+				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.LEVEL, inputId, zoneId))
+				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.MUTE, inputId, zoneId))
 			}
 
-			return getDbuValue(state.getSendLevel(ChannelType.Input, input, zone))
+			let levelDec = state.getSendLevel(ChannelType.Input, inputId, zoneId)
+			console.log(
+				'inputToZoneLevel feedback - input:',
+				inputId,
+				'zone:',
+				zoneId,
+				'level:',
+				levelDec,
+			)
+
+			return getDbuValue(levelDec)
 		},
 		unsubscribe: (feedback) => {
-			let input = parseInt(feedback.options.input)
-			let zone = parseInt(feedback.options.zone)
-			state.removeSend(ChannelType.Input, input, zone)
+			let inputId = parseInt(feedback.options.input)
+			let zoneId = parseInt(feedback.options.zone)
+			console.log('Feedback: inputToZoneLevel unsubscribe -- Input: ', inputId + 1, ', Zone: ', zoneId + 1)
+
+			state.removeSend(ChannelType.Input, inputId, zoneId)
 		},
 	}
 
@@ -328,6 +365,8 @@ export function getFeedbacks(numberOfIO) {
 		],
 		callback: (feedback) => {
 			let currentPreset = state.getPreset()
+			console.log('Feedback: currentPreset callback -- Current Preset: ', currentPreset, ', Feedback Preset: ', feedback.options.preset)
+
 			return currentPreset == feedback.options.preset
 		},
 	}

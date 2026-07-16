@@ -6,7 +6,7 @@ export function createAutoTracking(state) {
 	/**
 	 * Adds channel to tracked parameters
 	 * @param {ChannelType} type - ChannelType (Input, Zone, or ControlGroup)
-	 * @param {Number} id - channel number
+	 * @param {Number} id - channel id (0-indexed)
 	 */
 	function addChannel(type, id) {
 		if (!state.trackedChannels[type].has(id)) {
@@ -24,7 +24,7 @@ export function createAutoTracking(state) {
 	/**
 	 * Removes channel from tracked parameters
 	 * @param {ChannelType} type - ChannelType (Input, Zone, or ControlGroup)
-	 * @param {Number} id - channel number
+	 * @param {Number} id - channel id (0-indexed)
 	 */
 	function removeChannel(type, id) {
 		if (state.manuallyTrackedChannels[type].includes(id)) return
@@ -36,7 +36,7 @@ export function createAutoTracking(state) {
 	/**
 	 * Stores channel information in tracked channels
 	 * @param {ChannelType} type - ChannelType (Input, Zone, or ControlGroup)
-	 * @param {Number} id - channel number
+	 * @param {Number} id - channel id (0-indexed)
 	 * @param {String} level - level of channel in dBu
 	 * @param {Boolean} mute - incoming mute status of channel
 	 */
@@ -64,7 +64,7 @@ export function createAutoTracking(state) {
 	/**
 	 * Get level of channel from tracked channels
 	 * @param {ChannelType} type - ChannelType (Input or Zone)
-	 * @param {Number} id - channel number
+	 * @param {Number} id - channel id (0-indexed)
 	 * @returns {Number} Level of channel as integer from API guide
 	 */
 	function getLevel(type, id) {
@@ -74,7 +74,7 @@ export function createAutoTracking(state) {
 	/**
 	 * Get mute status of channel from tracked channels
 	 * @param {ChannelType} type - ChannelType (Input, Zone, or ControlGroup)
-	 * @param {Number} id - channel number
+	 * @param {Number} id - channel id (0-indexed)
 	 * @returns {Boolean} Mute status of channel
 	 */
 	function getMute(type, id) {
@@ -86,8 +86,8 @@ export function createAutoTracking(state) {
 	/**
 	 * Adds an input or zone send to be tracked
 	 * @param {ChannelType} type - ChannelType (Input or Zone)
-	 * @param {Number} idFrom
-	 * @param {Number} idTo
+	 * @param {Number} idFrom - From channel id (0-indexed)
+	 * @param {Number} idTo - To channel id (0-indexed)
 	 */
 	function addSend(type, idFrom, idTo) {
 		const { channel } = addChannel(type, idFrom)
@@ -114,8 +114,8 @@ export function createAutoTracking(state) {
 	/**
 	 * Removed an input or zone send from tracking
 	 * @param {ChannelType} typeFrom - ChannelType (Input or Zone)
-	 * @param {Number} idFrom
-	 * @param {Number} idTo
+	 * @param {Number} idFrom - From channel id (0-indexed)
+	 * @param {Number} idTo - To channel id (0-indexed)
 	 */
 	function removeSend(type, idFrom, idTo) {
 		const channel = state.trackedChannels[type]?.get(idFrom)
@@ -127,8 +127,8 @@ export function createAutoTracking(state) {
 	/**
 	 * Updates send information in tracked channels
 	 * @param {ChannelType} type - ChannelType (Input or Zone)
-	 * @param {Number} idFrom
-	 * @param {Number} idTo
+	 * @param {Number} idFrom - From channel id (0-indexed)
+	 * @param {Number} idTo - To channel id (0-indexed)
 	 * @param {String} level
 	 * @param {Boolean} mute
 	 */
@@ -185,7 +185,7 @@ export function createAutoTracking(state) {
 	/**
 	 * Get level of channel send from tracked channels
 	 * @param {ChannelType} type - ChannelType (Input, Zone, or ControlGroup)
-	 * @param {Number} id - channel number
+	 * @param {Number} id - channel id (0-indexed)
 	 * @returns {Number} Level of channel as integer from API guide
 	 */
 	function getSendLevel(type, idFrom, idTo) {
@@ -195,7 +195,7 @@ export function createAutoTracking(state) {
 	/**
 	 * Get mute status of channel send from tracked channels
 	 * @param {ChannelType} type - ChannelType (Input, Zone, or ControlGroup)
-	 * @param {Number} id - channel number
+	 * @param {Number} id - channel id (0-indexed)
 	 * @returns {Boolean} Mute status of channel
 	 */
 	function getSendMute(type, idFrom, idTo) {
@@ -206,15 +206,15 @@ export function createAutoTracking(state) {
 
 	/**
 	 * Updates the state of the last preset number recalled
-	 * @param {Number} id
+	 * @param {Number} num - Preset number (1-indexed)
 	 */
-	function setPreset(id) {
-		state.lastPreset = id
+	function setPreset(num) {
+		state.lastPreset = num
 	}
 
 	/**
 	 * Gets the last recalled preset
-	 * @returns {Number} The last preset recalled
+	 * @returns {Number} The last preset recalled (1-indexed)
 	 */
 	function getPreset() {
 		return state.lastPreset
