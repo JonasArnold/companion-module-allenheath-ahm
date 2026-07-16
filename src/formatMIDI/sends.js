@@ -3,13 +3,13 @@ import { ChannelType, SendInfoType, SendType } from '../utility/constants.js'
 
 /**
  * Requests either if input send to zone is muted, or returns send level
- * @param {ChannelType} sendType
- * @param {SendInfoType} infoType
- * @param {String} chNumber
- * @param {String} sendChNumber
+ * @param {SendType} sendType - SendType
+ * @param {SendInfoType} infoType - SendInfoType
+ * @param {String} channelId - 0-indexed channel ID
+ * @param {String} sendChannelId - 0-indexed send channel ID
  * @returns { Buffer } Formulated command buffer
  */
-export function requestSendInfo(sendType, infoType, chNumber, sendChNumber) {
+export function requestSendInfo(sendType, infoType, channelId, sendChannelId) {
 	if (checkIfValueOfEnum(sendType, SendType) == false) return
 	if (checkIfValueOfEnum(infoType, SendInfoType) == false) return
 
@@ -18,7 +18,7 @@ export function requestSendInfo(sendType, infoType, chNumber, sendChNumber) {
 	let sendChType = getSendChTypeOfSendType(sendType)
 
 	console.log(
-		`requestSendInfo ${infoType}: chType: ${chType}, ch: ${chNumber}, sendChType: ${sendChType}, sendChNumber: ${sendChNumber}`,
+		`requestSendInfo ${infoType}: chType: ${chType}, ch: ${channelId}, sendChType: ${sendChType}, sendChNumber: ${sendChannelId}`,
 	)
 
 	return [
@@ -35,9 +35,9 @@ export function requestSendInfo(sendType, infoType, chNumber, sendChNumber) {
 			0x01,
 			0x0f,
 			parseInt(infoType, 16),
-			parseInt(chNumber), // - 1,
+			parseInt(channelId),
 			parseInt(sendChType),
-			parseInt(sendChNumber), // - 1,
+			parseInt(sendChannelId),
 			0xf7,
 		]),
 	]
@@ -46,7 +46,7 @@ export function requestSendInfo(sendType, infoType, chNumber, sendChNumber) {
 /**
  * Prepares MIDI string for inc/dec send level action
  * @param {*} action - Action instance options
- * @param {ChannelType} type
+ * @param {SendType} type - SendType
  * @returns {Buffer} Hex MIDI buffer ready to send
  */
 export function incDecSendLevelCallback(action, type) {
@@ -56,8 +56,8 @@ export function incDecSendLevelCallback(action, type) {
 
 	let chType = getChTypeOfSendType(type)
 	let sendChType = getSendChTypeOfSendType(type)
-	let chNumber = parseInt(action.options.incdec_ch_number)
-	let sendChNumber = parseInt(action.options.number)
+	let channelId = parseInt(action.options.incdec_ch_number)
+	let sendChannelId = parseInt(action.options.number)
 	let incdecSelector = action.options.incdec == 'inc' ? 0x7f : 0x3f
 
 	return [
@@ -72,9 +72,9 @@ export function incDecSendLevelCallback(action, type) {
 			0x00,
 			chType,
 			0x04,
-			chNumber,
+			channelId,
 			sendChType,
-			sendChNumber,
+			sendChannelId,
 			incdecSelector,
 			0xf7,
 		]),
@@ -83,12 +83,12 @@ export function incDecSendLevelCallback(action, type) {
 
 /**
  * Prepare MIDI string for setting input to zone mute
- * @param {Number} input
- * @param {Number} zone
- * @param {Boolean} mute
+ * @param {Number} inputId - 0-indexed input channel ID
+ * @param {Number} zoneId - 0-indexed zone channel ID
+ * @param {Boolean} mute - mute state to set
  * @returns {Buffer} Hex MIDI buffer ready to send
  */
-export function setInputToZoneMute(input, zone, mute) {
+export function setInputToZoneMute(inputId, zoneId, mute) {
 	return [
 		Buffer.from([
 			0xf0,
@@ -101,9 +101,9 @@ export function setInputToZoneMute(input, zone, mute) {
 			0x00,
 			0x00,
 			0x03,
-			input,
+			inputId,
 			0x01,
-			zone,
+			zoneId,
 			mute ? 0x7f : 0x3f,
 			0xf7,
 		]),

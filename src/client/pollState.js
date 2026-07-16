@@ -3,9 +3,12 @@ import { requestLevelInfo, requestMuteInfo } from '../formatMIDI/channels.js'
 import { requestSendInfo } from '../formatMIDI/sends.js'
 import { getContext } from '../context.js'
 
+const LOG_PREFIX = '[State Poller]'
+const log = (message) => console.log(`${LOG_PREFIX} ${message}`)
+
 /**
  * AHM state polling factory function.
- * @param {*} socket
+ * @param {Function} getSocket - Returns the current TCP socket
  * @param {Number} interval - Poll rate in ms
  * @param {*} onError
  * @returns {Function[]}
@@ -25,34 +28,56 @@ export function pollStateTimer(getSocket, interval = 10000, onError = console.er
 				throw new Error('Socket is not connected')
 			}
 
+			const inputChannels = state.getTrackedChannelMap(ChannelType.Input)
+			const zoneChannels = state.getTrackedChannelMap(ChannelType.Zone)
+			const controlGroups = state.getTrackedChannelMap(ChannelType.ControlGroup)
+			const inputToZoneSends = state.getTrackedSends(ChannelType.Input)
+			const zoneToZoneSends = state.getTrackedSends(ChannelType.Zone)
+			const channelCount = inputChannels.size + zoneChannels.size + controlGroups.size
+			const sendCount = inputToZoneSends.length + zoneToZoneSends.length
+
 			const requests = [
-				...buildChReqs(ChannelType.Input, state.getTrackedChannelMap(ChannelType.Input)),
-				...buildChReqs(ChannelType.Zone, state.getTrackedChannelMap(ChannelType.Zone)),
-				...buildChReqs(ChannelType.ControlGroup, state.getTrackedChannelMap(ChannelType.ControlGroup)),
-				...buildSendReqs(SendType.InputToZone, state.getAllSendStates(ChannelType.Input)),
-				...buildSendReqs(SendType.ZoneToZone, state.getAllSendStates(ChannelType.Zone)),
+				...buildChannelRequests(ChannelType.Input, inputChannels),
+				...buildChannelRequests(ChannelType.Zone, zoneChannels),
+				...buildChannelRequests(ChannelType.ControlGroup, controlGroups),
+				...buildSendRequests(SendType.InputToZone, inputToZoneSends),
+				...buildSendRequests(SendType.ZoneToZone, zoneToZoneSends),
 			]
 
 			for (const req of requests) {
 				socket.queue(req, Priority.LOW)
 			}
+
+			log(`Inputs: ${formatChannelIds(inputChannels)}`)
+			log(`Zones: ${formatChannelIds(zoneChannels)}`)
+			log(`Control groups: ${formatChannelIds(controlGroups)}`)
+			log(`Input -> Zone sends: ${formatSendIds(inputToZoneSends)}`)
+			log(`Zone -> Zone sends: ${formatSendIds(zoneToZoneSends)}`)
+			log(`Queued ${requests.length} requests (${channelCount} channels, ${sendCount} sends)`)
 		} catch (err) {
 			onError(err)
 		}
 	}
 
-	function buildChReqs(type, ids) {
+	function formatChannelIds(channels) {
+		return [...channels.keys()].map((id) => id + 1).join(', ') || '-'
+	}
+
+	function formatSendIds(sends) {
+		return sends.map(({ idFrom, idTo }) => `${idFrom + 1}->${idTo + 1}`).join(', ') || '-'
+	}
+
+	function buildChannelRequests(type, ids) {
 		const requests = []
 
 		for (const [id] of ids) {
-			console.log('buildChReqs - type:', type, 'id:', id)
 			requests.push(requestLevelInfo(type, id), requestMuteInfo(type, id))
 		}
 
 		return requests
 	}
 
-	function buildSendReqs(type, sends) {
+	function buildSendRequests(type, sends) {
 		const requests = []
 
 		for (const { idFrom, idTo } of sends) {
@@ -86,7 +111,7 @@ export function pollStateTimer(getSocket, interval = 10000, onError = console.er
 
 	function start() {
 		stopped = false
-		console.log('START POLLING')
+		log(`Started with an interval of ${interval} ms`)
 		poll()
 	}
 
@@ -97,6 +122,8 @@ export function pollStateTimer(getSocket, interval = 10000, onError = console.er
 			clearTimeout(timeout)
 			timeout = null
 		}
+
+		log('Stopped')
 	}
 
 	return {

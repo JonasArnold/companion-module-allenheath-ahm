@@ -1,17 +1,19 @@
-import { checkIfValueOfEnum } from '../utility/helpers.js'
+import { checkIfValueOfEnum, getChannelTypeName } from '../utility/helpers.js'
 import { ChannelType } from '../utility/constants.js'
+
+const LOG_PREFIX = '[MIDI Builder]'
+const log = (message) => console.log(`${LOG_PREFIX} ${message}`)
 
 /**
  * Requests channel level
- * @param {String} chType
- * @param {String} chNumber
+ * @param {ChannelType} type - ChannelType
+ * @param {String} id - Channel ID (0-indexed)
  * @returns { Buffer } Formulated command buffer
  */
-export function requestLevelInfo(chType, chNumber) {
-	if (checkIfValueOfEnum(chType, ChannelType) == false) return
-	// console.log('requested channel', chNumber, 'outputting channel', chNumber - 1)
+export function requestLevelInfo(type, id) {
+	if (checkIfValueOfEnum(type, ChannelType) == false) return
 
-	return [
+	const command = [
 		Buffer.from([
 			0xf0,
 			0x00,
@@ -21,26 +23,28 @@ export function requestLevelInfo(chType, chNumber) {
 			0x12,
 			0x01,
 			0x00,
-			parseInt(chType),
+			parseInt(type),
 			0x01,
 			0x0b,
 			0x17,
-			parseInt(chNumber), // - 1,
+			parseInt(id),
 			0xf7,
 		]),
 	]
+	log(`Request level -- type: ${getChannelTypeName(type)}, channel: ${parseInt(id) + 1}`)
+	return command
 }
 
 /**
  * Requests if channel is muted
- * @param {String} chType
- * @param {String} chNumber
+ * @param {ChannelType} type - ChannelType
+ * @param {String} id - Channel ID (0-indexed)
  * @returns { Buffer } Formulated command buffer
  */
-export function requestMuteInfo(chType, chNumber) {
-	if (checkIfValueOfEnum(chType, ChannelType) == false) return
+export function requestMuteInfo(type, id) {
+	if (checkIfValueOfEnum(type, ChannelType) == false) return
 
-	return [
+	const command = [
 		Buffer.from([
 			0xf0,
 			0x00,
@@ -50,19 +54,21 @@ export function requestMuteInfo(chType, chNumber) {
 			0x12,
 			0x01,
 			0x00,
-			parseInt(chType),
+			parseInt(type),
 			0x01,
 			0x09,
-			parseInt(chNumber), // - 1,
+			parseInt(id),
 			0xf7,
 		]),
 	]
+	log(`Request mute -- type: ${getChannelTypeName(type)}, channel: ${parseInt(id) + 1}`)
+	return command
 }
 
 /**
  * Prepares MIDI string for set level action
  * @param {*} action - Action instance options
- * @param {ChannelType} type
+ * @param {ChannelType} type - ChannelType
  * @returns {Buffer} Hex MIDI buffer ready to send
  */
 export function setLevelCallback(action, type) {
@@ -73,15 +79,16 @@ export function setLevelCallback(action, type) {
 	let typeHex = parseInt(0xb0 + type) // type code for Command "Channel Level"
 	let chNumber = parseInt(action.options.setlvl_ch_number)
 	let levelDec = parseInt(action.options.level)
-	console.log('chNumber', action.options.setlvl_ch_number)
 
-	return [Buffer.from([typeHex, 0x63, chNumber, typeHex, 0x62, 0x17, typeHex, 0x06, levelDec])]
+	const command = [Buffer.from([typeHex, 0x63, chNumber, typeHex, 0x62, 0x17, typeHex, 0x06, levelDec])]
+	log(`Set level -- type: ${getChannelTypeName(type)}, channel: ${chNumber + 1}, level: ${levelDec}`)
+	return command
 }
 
 /**
  * Prepares MIDI string for inc/dec level action
  * @param {*} action - Action instance options
- * @param {ChannelType} type
+ * @param {ChannelType} type - ChannelType
  * @returns {Buffer} Hex MIDI buffer ready to send
  */
 export function incDecLevelCallback(action, type) {
@@ -90,13 +97,10 @@ export function incDecLevelCallback(action, type) {
 	}
 
 	let typeCodeSetLevel = parseInt(0xb0 + type) // type code for Command "Level Increment / Decrement"
-	let typeCodeGetLevel = parseInt(0x00 + type) // type code for Command "Get Channel Level"
 	let chNumber = parseInt(action.options.incdec_ch_number)
 	let incdecSelector = action.options.incdec == 'inc' ? 0x7f : 0x3f
 
-	console.log('incDecCallback: ', type, chNumber, incdecSelector) // numbers are correct here
-
-	return [
+	const command = [
 		Buffer.from([
 			typeCodeSetLevel,
 			0x63,
@@ -109,4 +113,6 @@ export function incDecLevelCallback(action, type) {
 			incdecSelector,
 		]),
 	]
+	log(`Adjust level -- type: ${getChannelTypeName(type)}, channel: ${chNumber + 1}, operation: ${action.options.incdec}`)
+	return command
 }

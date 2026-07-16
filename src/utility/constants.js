@@ -152,6 +152,10 @@ export const SendType = {
 }
 
 /**
+ * @typedef {typeof SendType[keyof typeof SendType]} SendType
+ */
+
+/**
  * What info to request from a send? LEVEL or MUTE
  */
 export const SendInfoType = {
@@ -163,18 +167,16 @@ export const SendInfoType = {
  * @typedef {typeof SendInfoType[keyof typeof SendInfoType]} SendInfoType
  */
 
-// Types of feedbacks to monitor (e.g. poll or update on connect)
-export const MonitoredFeedbackType = {
-	Undefined: 0,
-	MuteState: 1,
-}
-
 // Playback Channel for "Audio Playback" Command
 export const PlaybackChannel = {
 	Mono1: 0,
 	Mono2: 1,
 	Stereo: 2,
 }
+
+/**
+ * @typedef {typeof PlaybackChannel[keyof typeof PlaybackChannel]} PlaybackChannel
+ */
 
 // Color swatches across the entire module
 export const Colors = {
