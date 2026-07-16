@@ -1,7 +1,6 @@
 import { ChannelType } from '../utility/constants.js'
 import { createState } from './core.js'
-import { createAutoTracking } from './autoTrack.js'
-import { createManualTracking } from './manualTrack.js'
+import { createTracking } from './tracking.js'
 
 /**
  * Factory function tracking input, zone, and control group levels and mutes
@@ -10,8 +9,7 @@ import { createManualTracking } from './manualTrack.js'
 export function trackAHMParams() {
 	const state = createState()
 
-	Object.assign(state, createAutoTracking(state))
-	Object.assign(state, createManualTracking(state))
+	Object.assign(state, createTracking(state))
 
 	function reset() {
 		Object.assign(state, createState())

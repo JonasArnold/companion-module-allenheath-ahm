@@ -11,11 +11,6 @@ export function createState() {
 			[ChannelType.Zone]: new Map(),
 			[ChannelType.ControlGroup]: new Map(),
 		},
-		manuallyTrackedChannels: {
-			[ChannelType.Input]: [],
-			[ChannelType.Zone]: [],
-			[ChannelType.ControlGroup]: [],
-		},
 		lastPreset: 0,
 	}
 }
