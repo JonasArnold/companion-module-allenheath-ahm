@@ -1,4 +1,6 @@
 import { Colors } from './utility/constants.js'
+import { FeedbackId } from './feedbacks.js'
+import { ActionId } from './actions.js'
 
 export function getPresets(numberOfInputs, numberOfZones) {
 	let presets = []
@@ -20,7 +22,7 @@ export function getPresets(numberOfInputs, numberOfZones) {
 				{
 					down: [
 						{
-							actionId: 'mute_input',
+							actionId: ActionId.MuteInput,
 							options: {
 								mute_number: index,
 								mute: true,
@@ -32,7 +34,7 @@ export function getPresets(numberOfInputs, numberOfZones) {
 				{
 					down: [
 						{
-							actionId: 'mute_input',
+							actionId: ActionId.MuteInput,
 							options: {
 								mute_number: index,
 								mute: false,
@@ -44,7 +46,7 @@ export function getPresets(numberOfInputs, numberOfZones) {
 			],
 			feedbacks: [
 				{
-					feedbackId: 'inputMute',
+					feedbackId: FeedbackId.InputMute,
 					options: {
 						input: index,
 					},
@@ -74,7 +76,7 @@ export function getPresets(numberOfInputs, numberOfZones) {
 				{
 					down: [
 						{
-							actionId: 'mute_zone',
+							actionId: ActionId.MuteZone,
 							options: {
 								mute_number: index,
 								mute: true,
@@ -86,7 +88,7 @@ export function getPresets(numberOfInputs, numberOfZones) {
 				{
 					down: [
 						{
-							actionId: 'mute_zone',
+							actionId: ActionId.MuteZone,
 							options: {
 								mute_number: index,
 								mute: false,
@@ -98,7 +100,7 @@ export function getPresets(numberOfInputs, numberOfZones) {
 			],
 			feedbacks: [
 				{
-					feedbackId: 'zoneMute',
+					feedbackId: FeedbackId.ZoneMute,
 					options: {
 						zone: parseInt(index),
 					},
@@ -128,7 +130,7 @@ export function getPresets(numberOfInputs, numberOfZones) {
 				{
 					down: [
 						{
-							actionId: 'mute_controlgroup',
+							actionId: ActionId.MuteControlGroup,
 							options: {
 								mute_number: index,
 								mute: true,
@@ -140,7 +142,7 @@ export function getPresets(numberOfInputs, numberOfZones) {
 				{
 					down: [
 						{
-							actionId: 'mute_controlgroup',
+							actionId: ActionId.MuteControlGroup,
 							options: {
 								mute_number: index,
 								mute: false,
@@ -152,7 +154,7 @@ export function getPresets(numberOfInputs, numberOfZones) {
 			],
 			feedbacks: [
 				{
-					feedbackId: 'cgMute',
+					feedbackId: FeedbackId.ControlGroupMute,
 					options: {
 						cg: parseInt(index),
 					},
@@ -183,7 +185,7 @@ export function getPresets(numberOfInputs, numberOfZones) {
 					{
 						down: [
 							{
-								actionId: 'input_to_zone',
+								actionId: ActionId.MuteInputToZone,
 								options: {
 									mute_number: parseInt(input),
 									number: zone,
@@ -196,7 +198,7 @@ export function getPresets(numberOfInputs, numberOfZones) {
 					{
 						down: [
 							{
-								actionId: 'input_to_zone',
+								actionId: ActionId.MuteInputToZone,
 								options: {
 									mute_number: parseInt(input),
 									number: zone,
@@ -209,7 +211,7 @@ export function getPresets(numberOfInputs, numberOfZones) {
 				],
 				feedbacks: [
 					{
-						feedbackId: 'inputToZoneMute',
+						feedbackId: FeedbackId.InputToZoneMute,
 						options: {
 							input: parseInt(input),
 							zone: zone,

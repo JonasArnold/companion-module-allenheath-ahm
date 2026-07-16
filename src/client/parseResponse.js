@@ -1,17 +1,18 @@
 import { ChannelType } from '../utility/constants.js'
 import { getVarNameInputLevel, getVarNameZoneLevel, getVarNameCGLevel, getDbuValue } from '../utility/helpers.js'
 import { getContext } from '../context.js'
+import { FeedbackId } from '../feedbacks.js'
 
 const LEVEL_HANDLERS = {
-	0xb0: { type: ChannelType.Input, getVarName: getVarNameInputLevel, feedback: 'inputLevel', label: 'Input' },
-	0xb1: { type: ChannelType.Zone, getVarName: getVarNameZoneLevel, feedback: 'zoneLevel', label: 'Zone' },
-	0xb2: { type: ChannelType.ControlGroup, getVarName: getVarNameCGLevel, feedback: 'cgLevel', label: 'Control Group' },
+	0xb0: { type: ChannelType.Input, getVarName: getVarNameInputLevel, feedback: FeedbackId.InputLevel, label: 'Input' },
+	0xb1: { type: ChannelType.Zone, getVarName: getVarNameZoneLevel, feedback: FeedbackId.ZoneLevel, label: 'Zone' },
+	0xb2: { type: ChannelType.ControlGroup, getVarName: getVarNameCGLevel, feedback: FeedbackId.ControlGroupLevel, label: 'Control Group' },
 }
 
 const MUTE_HANDLERS = {
-	0x90: { type: ChannelType.Input, feedback: 'inputMute', label: 'Input' },
-	0x91: { type: ChannelType.Zone, feedback: 'zoneMute', label: 'Zone' },
-	0x92: { type: ChannelType.ControlGroup, feedback: 'cgMute', label: 'Control Group' },
+	0x90: { type: ChannelType.Input, feedback: FeedbackId.InputMute, label: 'Input' },
+	0x91: { type: ChannelType.Zone, feedback: FeedbackId.ZoneMute, label: 'Zone' },
+	0x92: { type: ChannelType.ControlGroup, feedback: FeedbackId.ControlGroupMute, label: 'Control Group' },
 }
 
 export function parseResponse(data) {
@@ -35,7 +36,7 @@ export function parseResponse(data) {
 			)
 
 			state.setSend(ChannelType.Input, inputId, zoneId, levelRaw, undefined) // log below displays correct data, this line doesn't
-			companion.checkFeedbacks('inputToZoneLevel')
+			companion.checkFeedbacks(FeedbackId.InputToZoneLevel)
 			return
 		}
 
@@ -50,7 +51,7 @@ export function parseResponse(data) {
 			)
 
 			state.setSend(ChannelType.Input, inputId, zoneId, undefined, mute)
-			companion.checkFeedbacks('inputToZoneMute')
+			companion.checkFeedbacks(FeedbackId.InputToZoneMute)
 			return
 		}
 		return
@@ -110,7 +111,7 @@ export function parseResponse(data) {
 		)
 
 		companion.setVariableValues({ currentPreset: state.getPreset() })
-		companion.checkFeedbacks('currentPreset')
+		companion.checkFeedbacks(FeedbackId.CurrentPreset)
 		return
 	}
 }

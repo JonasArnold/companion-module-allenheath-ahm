@@ -7,11 +7,27 @@ import { getContext } from './context.js'
 const LOG_PREFIX = '[Feedback]'
 const log = (message) => console.log(`${LOG_PREFIX} ${message}`)
 
+export const FeedbackId = {
+	InputMute: 'inputMute',
+	InputLevel: 'inputLevel',
+	ZoneMute: 'zoneMute',
+	ZoneLevel: 'zoneLevel',
+	ControlGroupMute: 'cgMute',
+	ControlGroupLevel: 'cgLevel',
+	InputToZoneMute: 'inputToZoneMute',
+	InputToZoneLevel: 'inputToZoneLevel',
+	CurrentPreset: 'currentPreset',
+}
+
+/**
+ * @typedef {typeof FeedbackId[keyof typeof FeedbackId]} FeedbackId
+ */
+
 export function getFeedbacks(numberOfIO) {
 	const { tcpClient, state } = getContext()
 	const feedbacks = {}
 
-	feedbacks['inputMute'] = {
+	feedbacks[FeedbackId.InputMute] = {
 		type: 'boolean',
 		name: 'Input Mute',
 		description: 'Change background when input on mute',
@@ -32,22 +48,22 @@ export function getFeedbacks(numberOfIO) {
 		callback: (feedback, context) => {
 			let inputId = parseInt(feedback.options.input)
 
-			state.addChannel(ChannelType.Input, inputId, feedback.id, 'inputMute')
+			state.addChannel(ChannelType.Input, inputId, feedback.id, FeedbackId.InputMute)
 
 			let muteState = state.getMute(ChannelType.Input, inputId)
-			log(`inputMute callback -- ID: ${feedback.id}, input: ${inputId + 1}, state: ${muteState}`)
+			log(`${FeedbackId.InputMute} callback -- ID: ${feedback.id}, input: ${inputId + 1}, state: ${muteState}`)
 
 			return muteState
 		},
 		unsubscribe: (feedback) => {
 			let inputId = parseInt(feedback.options.input)
-			log(`inputMute unsubscribe -- ID: ${feedback.id}, input: ${inputId + 1}`)
+			log(`${FeedbackId.InputMute} unsubscribe -- ID: ${feedback.id}, input: ${inputId + 1}`)
 
 			state.removeChannel(feedback.id)
 		},
 	}
 
-	feedbacks['inputLevel'] = {
+	feedbacks[FeedbackId.InputLevel] = {
 		type: 'value',
 		name: 'Input Level',
 		description: 'Returns level of input in dBu',
@@ -64,27 +80,27 @@ export function getFeedbacks(numberOfIO) {
 		callback: (feedback, bank) => {
 			let inputId = parseInt(feedback.options.input)
 
-			const { isNew } = state.addChannel(ChannelType.Input, inputId, feedback.id, 'inputLevel')
+			const { isNew } = state.addChannel(ChannelType.Input, inputId, feedback.id, FeedbackId.InputLevel)
 			if (isNew) {
-				// If new, immediately request level info
+				// If new, immediately request info
 				tcpClient.queue(requestLevelInfo(ChannelType.Input, inputId))
 				tcpClient.queue(requestMuteInfo(ChannelType.Input, inputId))
 			}
 
 			let levelDec = state.getLevel(ChannelType.Input, inputId)
-			log(`inputLevel callback -- ID: ${feedback.id}, input: ${inputId + 1}, level (dec): ${levelDec}, isNew: ${isNew}`)
+			log(`${FeedbackId.InputLevel} callback -- ID: ${feedback.id}, input: ${inputId + 1}, level (dec): ${levelDec}, isNew: ${isNew}`)
 
 			return getDbuValue(levelDec)
 		},
 		unsubscribe: (feedback) => {
 			let inputId = parseInt(feedback.options.input)
-			log(`inputLevel unsubscribe -- ID: ${feedback.id}, input: ${inputId + 1}`)
+			log(`${FeedbackId.InputLevel} unsubscribe -- ID: ${feedback.id}, input: ${inputId + 1}`)
 
 			state.removeChannel(feedback.id)
 		},
 	}
 
-	feedbacks['zoneMute'] = {
+	feedbacks[FeedbackId.ZoneMute] = {
 		type: 'boolean',
 		name: 'Zone Mute',
 		description: 'Change background when zone on mute',
@@ -105,22 +121,22 @@ export function getFeedbacks(numberOfIO) {
 		callback: (feedback, bank) => {
 			let zoneId = parseInt(feedback.options.zone)
 
-			state.addChannel(ChannelType.Zone, zoneId, feedback.id, 'zoneMute')
+			state.addChannel(ChannelType.Zone, zoneId, feedback.id, FeedbackId.ZoneMute)
 
 			let muteState = state.getMute(ChannelType.Zone, zoneId)
-			log(`zoneMute callback -- ID: ${feedback.id}, zone: ${zoneId + 1}, state: ${muteState}`)
+			log(`${FeedbackId.ZoneMute} callback -- ID: ${feedback.id}, zone: ${zoneId + 1}, state: ${muteState}`)
 
 			return muteState
 		},
 		unsubscribe: (feedback) => {
 			let zoneId = parseInt(feedback.options.zone)
-			log(`zoneMute unsubscribe -- ID: ${feedback.id}, zone: ${zoneId + 1}`)
+			log(`${FeedbackId.ZoneMute} unsubscribe -- ID: ${feedback.id}, zone: ${zoneId + 1}`)
 
 			state.removeChannel(feedback.id)
 		},
 	}
 
-	feedbacks['zoneLevel'] = {
+	feedbacks[FeedbackId.ZoneLevel] = {
 		type: 'value',
 		name: 'Zone Level',
 		description: 'Returns level of zone in dBu',
@@ -137,27 +153,27 @@ export function getFeedbacks(numberOfIO) {
 		callback: (feedback, bank) => {
 			let zoneId = parseInt(feedback.options.zone)
 
-			const { isNew } = state.addChannel(ChannelType.Zone, zoneId, feedback.id, 'zoneLevel')
+			const { isNew } = state.addChannel(ChannelType.Zone, zoneId, feedback.id, FeedbackId.ZoneLevel)
 			if (isNew) {
-				// If new, immediately request level info
+				// If new, immediately request info
 				tcpClient.queue(requestLevelInfo(ChannelType.Zone, zoneId))
 				tcpClient.queue(requestMuteInfo(ChannelType.Zone, zoneId))
 			}
 
 			let levelDec = state.getLevel(ChannelType.Zone, zoneId)
-			log(`zoneLevel callback -- ID: ${feedback.id}, zone: ${zoneId + 1}, level (dec): ${levelDec}, isNew: ${isNew}`)
+			log(`${FeedbackId.ZoneLevel} callback -- ID: ${feedback.id}, zone: ${zoneId + 1}, level (dec): ${levelDec}, isNew: ${isNew}`)
 
 			return getDbuValue(levelDec)
 		},
 		unsubscribe: (feedback) => {
 			let zoneId = parseInt(feedback.options.zone)
-			log(`zoneLevel unsubscribe -- ID: ${feedback.id}, zone: ${zoneId + 1}`)
+			log(`${FeedbackId.ZoneLevel} unsubscribe -- ID: ${feedback.id}, zone: ${zoneId + 1}`)
 
 			state.removeChannel(feedback.id)
 		},
 	}
 
-	feedbacks['cgMute'] = {
+	feedbacks[FeedbackId.ControlGroupMute] = {
 		type: 'boolean',
 		name: 'Control Group Mute',
 		description: 'Change background when control group on mute',
@@ -178,22 +194,22 @@ export function getFeedbacks(numberOfIO) {
 		callback: (feedback, bank) => {
 			let controlGroupId = parseInt(feedback.options.cg)
 
-			state.addChannel(ChannelType.ControlGroup, controlGroupId, feedback.id, 'cgMute')
+			state.addChannel(ChannelType.ControlGroup, controlGroupId, feedback.id, FeedbackId.ControlGroupMute)
 
 			let muteState = state.getMute(ChannelType.ControlGroup, controlGroupId)
-			log(`cgMute callback -- ID: ${feedback.id}, control group: ${controlGroupId + 1}, state: ${muteState}`)
+			log(`${FeedbackId.ControlGroupMute} callback -- ID: ${feedback.id}, control group: ${controlGroupId + 1}, state: ${muteState}`)
 
 			return muteState
 		},
 		unsubscribe: (feedback) => {
 			let controlGroupId = parseInt(feedback.options.cg)
-			log(`cgMute unsubscribe -- ID: ${feedback.id}, control group: ${controlGroupId + 1}`)
+			log(`${FeedbackId.ControlGroupMute} unsubscribe -- ID: ${feedback.id}, control group: ${controlGroupId + 1}`)
 
 			state.removeChannel(feedback.id)
 		},
 	}
 
-	feedbacks['cgLevel'] = {
+	feedbacks[FeedbackId.ControlGroupLevel] = {
 		type: 'value',
 		name: 'Control Group Level',
 		description: 'Returns level of control group in dBu',
@@ -210,27 +226,32 @@ export function getFeedbacks(numberOfIO) {
 		callback: (feedback, bank) => {
 			let controlGroupId = parseInt(feedback.options.cg)
 
-			const { isNew } = state.addChannel(ChannelType.ControlGroup, controlGroupId, feedback.id, 'cgLevel')
+			const { isNew } = state.addChannel(
+				ChannelType.ControlGroup,
+				controlGroupId,
+				feedback.id,
+				FeedbackId.ControlGroupLevel,
+			)
 			if (isNew) {
-				// If new, immediately request level info
+				// If new, immediately request info
 				tcpClient.queue(requestLevelInfo(ChannelType.ControlGroup, controlGroupId))
 				tcpClient.queue(requestMuteInfo(ChannelType.ControlGroup, controlGroupId))
 			}
 
 			let levelDec = state.getLevel(ChannelType.ControlGroup, controlGroupId)
-			log(`cgLevel callback -- ID: ${feedback.id}, CG: ${controlGroupId + 1}, level: ${levelDec}, new: ${isNew}`)
+			log(`${FeedbackId.ControlGroupLevel} callback -- ID: ${feedback.id}, CG: ${controlGroupId + 1}, level: ${levelDec}, new: ${isNew}`)
 
 			return getDbuValue(levelDec)
 		},
 		unsubscribe: (feedback) => {
 			let controlGroupId = parseInt(feedback.options.cg)
-			log(`cgLevel unsubscribe -- ID: ${feedback.id}, control group: ${controlGroupId + 1}`)
+			log(`${FeedbackId.ControlGroupLevel} unsubscribe -- ID: ${feedback.id}, control group: ${controlGroupId + 1}`)
 
 			state.removeChannel(feedback.id)
 		},
 	}
 
-	feedbacks['inputToZoneMute'] = {
+	feedbacks[FeedbackId.InputToZoneMute] = {
 		type: 'boolean',
 		name: 'Input to Zone - Mute',
 		description: 'Change background when input to zone on mute',
@@ -260,23 +281,23 @@ export function getFeedbacks(numberOfIO) {
 			let inputId = parseInt(feedback.options.input)
 			let zoneId = parseInt(feedback.options.zone)
 
-			state.addSend(ChannelType.Input, inputId, zoneId, feedback.id, 'inputToZoneMute')
+			state.addSend(ChannelType.Input, inputId, zoneId, feedback.id, FeedbackId.InputToZoneMute)
 
 			let muteState = state.getSendMute(ChannelType.Input, inputId, zoneId)
-			log(`inputToZoneMute callback -- ID: ${feedback.id}, input: ${inputId + 1}, zone: ${zoneId + 1}, mute: ${muteState}`)
+			log(`${FeedbackId.InputToZoneMute} callback -- ID: ${feedback.id}, input: ${inputId + 1}, zone: ${zoneId + 1}, mute: ${muteState}`)
 
 			return muteState
 		},
 		unsubscribe: (feedback) => {
 			let inputId = parseInt(feedback.options.input)
 			let zoneId = parseInt(feedback.options.zone)
-			log(`inputToZoneMute unsubscribe -- ID: ${feedback.id}, input: ${inputId + 1}, zone: ${zoneId + 1}`)
+			log(`${FeedbackId.InputToZoneMute} unsubscribe -- ID: ${feedback.id}, input: ${inputId + 1}, zone: ${zoneId + 1}`)
 
 			state.removeSend(feedback.id)
 		},
 	}
 
-	feedbacks['inputToZoneLevel'] = {
+	feedbacks[FeedbackId.InputToZoneLevel] = {
 		type: 'value',
 		name: 'Input to Zone - Level',
 		description: 'Returns value of input sent to zone',
@@ -302,28 +323,34 @@ export function getFeedbacks(numberOfIO) {
 			let inputId = parseInt(feedback.options.input)
 			let zoneId = parseInt(feedback.options.zone)
 
-			const { isNew } = state.addSend(ChannelType.Input, inputId, zoneId, feedback.id, 'inputToZoneLevel')
+			const { isNew } = state.addSend(
+				ChannelType.Input,
+				inputId,
+				zoneId,
+				feedback.id,
+				FeedbackId.InputToZoneLevel,
+			)
 			if (isNew) {
-				log(`New send -- ID: ${feedback.id}, input ID: ${inputId}, zone ID: ${zoneId}`)
+				// If new, immediately request info
 				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.LEVEL, inputId, zoneId))
 				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.MUTE, inputId, zoneId))
 			}
 
 			let levelDec = state.getSendLevel(ChannelType.Input, inputId, zoneId)
-			log(`inputToZoneLevel callback -- ID: ${feedback.id}, input ID: ${inputId}, zone ID: ${zoneId}, level: ${levelDec}`)
+			log(`${FeedbackId.InputToZoneLevel} callback -- ID: ${feedback.id}, input ID: ${inputId}, zone ID: ${zoneId}, level: ${levelDec}`)
 
 			return getDbuValue(levelDec)
 		},
 		unsubscribe: (feedback) => {
 			let inputId = parseInt(feedback.options.input)
 			let zoneId = parseInt(feedback.options.zone)
-			log(`inputToZoneLevel unsubscribe -- ID: ${feedback.id}, input: ${inputId + 1}, zone: ${zoneId + 1}`)
+			log(`${FeedbackId.InputToZoneLevel} unsubscribe -- ID: ${feedback.id}, input: ${inputId + 1}, zone: ${zoneId + 1}`)
 
 			state.removeSend(feedback.id)
 		},
 	}
 
-	feedbacks['currentPreset'] = {
+	feedbacks[FeedbackId.CurrentPreset] = {
 		type: 'boolean',
 		name: 'Active Preset',
 		description: 'Feedback when a specific preset has been recalled',
@@ -342,7 +369,7 @@ export function getFeedbacks(numberOfIO) {
 		],
 		callback: (feedback) => {
 			let currentPreset = state.getPreset()
-			log(`currentPreset callback -- ID: ${feedback.id}, current: ${currentPreset}, feedback: ${feedback.options.preset}`)
+			log(`${FeedbackId.CurrentPreset} callback -- ID: ${feedback.id}, current: ${currentPreset}, feedback: ${feedback.options.preset}`)
 
 			return currentPreset == feedback.options.preset
 		},

@@ -8,9 +8,31 @@ import { setLevelCallback, incDecLevelCallback, requestLevelInfo, requestMuteInf
 import { requestSendInfo, incDecSendLevelCallback, setInputToZoneMute } from './formatMIDI/sends.js'
 import { setPlaybackTrack } from './formatMIDI/playback.js'
 import { getContext } from './context.js'
+import { FeedbackId } from './feedbacks.js'
 
 const PRESET_COUNT = 500
 const PLAYBACK_COUNT = 127
+
+export const ActionId = {
+	MuteInput: 'mute_input',
+	MuteZone: 'mute_zone',
+	MuteControlGroup: 'mute_controlgroup',
+	SetInputLevel: 'set_level_input',
+	AdjustInputLevel: 'inc_dec_level_input',
+	SetZoneLevel: 'set_level_zone',
+	AdjustZoneLevel: 'inc_dec_level_zone',
+	SetControlGroupLevel: 'set_level_controlgroup',
+	AdjustControlGroupLevel: 'inc_dec_level_controlgroup',
+	RecallPreset: 'preset_recall',
+	PlaybackTrack: 'playback_track',
+	MuteInputToZone: 'input_to_zone',
+	AdjustInputToZoneSendLevel: 'inc_dec_in_zn_send_level',
+	AdjustZoneToZoneSendLevel: 'inc_dec_zn_zn_send_level',
+}
+
+/**
+ * @typedef {typeof ActionId[keyof typeof ActionId]} ActionId
+ */
 
 /**
  * Builds dropdown options for Companion Actions
@@ -141,7 +163,7 @@ export function getActions(numberOfInputs, numberOfZones) {
 
 	// MUTE ACTIONS //
 
-	actions['mute_input'] = {
+	actions[ActionId.MuteInput] = {
 		name: 'Mute Input',
 		options: muteOptions('Input', numberOfInputs, -1),
 		callback: async (action) => {
@@ -158,11 +180,11 @@ export function getActions(numberOfInputs, numberOfZones) {
 
 			state.setChannel(ChannelType.Input, inputNumber, undefined, mute)
 			console.log('checking feedback inputMute')
-			companion.checkFeedbacks('inputMute')
+			companion.checkFeedbacks(FeedbackId.InputMute)
 		},
 	}
 
-	actions['mute_zone'] = {
+	actions[ActionId.MuteZone] = {
 		name: 'Mute Zone',
 		options: muteOptions('Zone', numberOfInputs, -1),
 		callback: (action) => {
@@ -179,11 +201,11 @@ export function getActions(numberOfInputs, numberOfZones) {
 
 			state.setChannel(ChannelType.Zone, zoneNumber, undefined, mute)
 			console.log('checking feedback zoneMute')
-			companion.checkFeedbacks('zoneMute')
+			companion.checkFeedbacks(FeedbackId.ZoneMute)
 		},
 	}
 
-	actions['mute_controlgroup'] = {
+	actions[ActionId.MuteControlGroup] = {
 		name: 'Mute Control Group',
 		options: muteOptions('Control Group', 32, -1),
 		callback: async (action) => {
@@ -197,13 +219,13 @@ export function getActions(numberOfInputs, numberOfZones) {
 			// tcpClient.queue(buffers)
 
 			state.setChannel(ChannelType.ControlGroup, cgNumber, undefined, mute)
-			companion.checkFeedbacks('cgMute')
+			companion.checkFeedbacks(FeedbackId.ControlGroupMute)
 		},
 	}
 
 	// LEVEL ACTIONS //
 
-	actions['set_level_input'] = {
+	actions[ActionId.SetInputLevel] = {
 		name: 'Set Level of Input',
 		options: setLevelOptions('Input', numberOfInputs, -1),
 		callback: (action) => {
@@ -215,7 +237,7 @@ export function getActions(numberOfInputs, numberOfZones) {
 		},
 	}
 
-	actions['inc_dec_level_input'] = {
+	actions[ActionId.AdjustInputLevel] = {
 		name: 'Increment/Decrement Level of Input',
 		options: incDecOptions('Input', numberOfInputs, -1),
 		callback: (action) => {
@@ -226,7 +248,7 @@ export function getActions(numberOfInputs, numberOfZones) {
 		},
 	}
 
-	actions['set_level_zone'] = {
+	actions[ActionId.SetZoneLevel] = {
 		name: 'Set Level of Zone',
 		options: [
 			{
@@ -253,7 +275,7 @@ export function getActions(numberOfInputs, numberOfZones) {
 		},
 	}
 
-	actions['inc_dec_level_zone'] = {
+	actions[ActionId.AdjustZoneLevel] = {
 		name: 'Increment/Decrement Level of Zone',
 		options: incDecOptions('Zone', numberOfZones, -1),
 		callback: (action) => {
@@ -264,7 +286,7 @@ export function getActions(numberOfInputs, numberOfZones) {
 		},
 	}
 
-	actions['set_level_controlgroup'] = {
+	actions[ActionId.SetControlGroupLevel] = {
 		name: 'Set Level of Control Group',
 		options: setLevelOptions('Control Group', 32, -1),
 		callback: (action) => {
@@ -275,7 +297,7 @@ export function getActions(numberOfInputs, numberOfZones) {
 		},
 	}
 
-	actions['inc_dec_level_controlgroup'] = {
+	actions[ActionId.AdjustControlGroupLevel] = {
 		name: 'Increment/Decrement Level of Control Group',
 		options: incDecOptions('Control Group', 32, -1),
 		callback: (action) => {
@@ -286,7 +308,7 @@ export function getActions(numberOfInputs, numberOfZones) {
 		},
 	}
 
-	actions['preset_recall'] = {
+	actions[ActionId.RecallPreset] = {
 		name: 'Recall Preset',
 		options: listOptions('Preset', PRESET_COUNT, -1),
 		callback: (action) => {
@@ -299,7 +321,7 @@ export function getActions(numberOfInputs, numberOfZones) {
 		},
 	}
 
-	actions['playback_track'] = {
+	actions[ActionId.PlaybackTrack] = {
 		name: 'Playback Track',
 		options: listOptions('Playback Track', PLAYBACK_COUNT, -1).concat(playbackChannelOptions('Playback Channel')),
 		callback: (action) => {
@@ -312,7 +334,7 @@ export function getActions(numberOfInputs, numberOfZones) {
 		},
 	}
 
-	actions['input_to_zone'] = {
+	actions[ActionId.MuteInputToZone] = {
 		name: 'Mute Input to Zone',
 		options: muteOptions('Input', numberOfInputs, -1).concat(listOptions('Zone', numberOfZones, -1)),
 		callback: (action) => {
@@ -322,7 +344,7 @@ export function getActions(numberOfInputs, numberOfZones) {
 
 			// manually update internal state
 			state.setSend(ChannelType.Input, inputNumber, zoneNumber, undefined, action.options.mute)
-			companion.checkFeedbacks('inputToZoneMute')
+			companion.checkFeedbacks(FeedbackId.InputToZoneMute)
 
 			console.log(inputNumber, zoneNumber, SendInfoType.MUTE)
 			setTimeout(() => {
@@ -331,7 +353,7 @@ export function getActions(numberOfInputs, numberOfZones) {
 		},
 	}
 
-	actions['inc_dec_in_zn_send_level'] = {
+	actions[ActionId.AdjustInputToZoneSendLevel] = {
 		name: 'Increment/Decrement Input to Zone Send Level',
 		options: incDecOptions('Input', numberOfInputs, -1).concat(listOptions('Zone', numberOfZones, -1)),
 		callback: (action) => {
@@ -349,7 +371,7 @@ export function getActions(numberOfInputs, numberOfZones) {
 		},
 	}
 
-	actions['inc_dec_zn_zn_send_level'] = {
+	actions[ActionId.AdjustZoneToZoneSendLevel] = {
 		name: 'Increment/Decrement Zone to Zone Send Level',
 		options: incDecOptions('Zone', numberOfZones, -1).concat(listOptions('Zone', numberOfZones, -1)),
 		callback: (action) => {
