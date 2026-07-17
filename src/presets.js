@@ -57,7 +57,7 @@ export function getPresets(self) {
 						actionId: ActionId.MuteInput,
 						options: {
 							mute_number: {
-								isExpression: true, value: '$(local:input)'
+								isExpression: true, value: `$(local:input) - 1`
 							},
 							mute: true,
 						},
@@ -71,7 +71,7 @@ export function getPresets(self) {
 						actionId: ActionId.MuteInput,
 						options: {
 							mute_number: {
-								isExpression: true, value: '$(local:input)'
+								isExpression: true, value: `$(local:input) - 1`
 							},
 							mute: false,
 						},
@@ -85,7 +85,7 @@ export function getPresets(self) {
 				feedbackId: FeedbackId.InputMute,
 				options: {
 					input: {
-						isExpression: true, value: '$(local:input)'
+						isExpression: true, value: `$(local:input) - 1`
 					},
 				},
 				style: {
@@ -121,7 +121,7 @@ export function getPresets(self) {
 						actionId: ActionId.MuteZone,
 						options: {
 							mute_number: {
-								isExpression: true, value: '$(local:zone)'
+								isExpression: true, value: `$(local:zone) - 1`
 							},
 							mute: true,
 						},
@@ -135,7 +135,7 @@ export function getPresets(self) {
 						actionId: ActionId.MuteZone,
 						options: {
 							mute_number: {
-								isExpression: true, value: '$(local:zone)'
+								isExpression: true, value: `$(local:zone) - 1`
 							},
 							mute: false,
 						},
@@ -149,7 +149,7 @@ export function getPresets(self) {
 				feedbackId: FeedbackId.ZoneMute,
 				options: {
 					zone: {
-						isExpression: true, value: '$(local:zone)'
+						isExpression: true, value: `$(local:zone) - 1`
 					},
 				},
 				style: {
@@ -185,7 +185,7 @@ export function getPresets(self) {
 						actionId: ActionId.MuteControlGroup,
 						options: {
 							mute_number: {
-								isExpression: true, value: '$(local:cg)'
+								isExpression: true, value: `$(local:cg) - 1`
 							},
 							mute: true,
 						},
@@ -199,7 +199,7 @@ export function getPresets(self) {
 						actionId: ActionId.MuteControlGroup,
 						options: {
 							mute_number: {
-								isExpression: true, value: '$(local:cg)'
+								isExpression: true, value: `$(local:cg) - 1`
 							},
 							mute: false,
 						},
@@ -213,7 +213,7 @@ export function getPresets(self) {
 				feedbackId: FeedbackId.ControlGroupMute,
 				options: {
 					cg: {
-						isExpression: true, value: '$(local:cg)'
+						isExpression: true, value: `$(local:cg) - 1`
 					},
 				},
 				style: {
@@ -249,10 +249,10 @@ export function getPresets(self) {
 						actionId: ActionId.MuteInputToZone,
 						options: {
 							mute_number: {
-								isExpression: true, value: '$(local:input)'
+								isExpression: true, value: `$(local:input) - 1`
 							},
 							number: {
-								isExpression: true, value: '$(local:zone)'
+								isExpression: true, value: `$(local:zone) - 1`
 							},
 							mute: true,
 						},
@@ -266,10 +266,10 @@ export function getPresets(self) {
 						actionId: ActionId.MuteInputToZone,
 						options: {
 							mute_number: {
-								isExpression: true, value: '$(local:input)'
+								isExpression: true, value: `$(local:input) - 1`
 							},
 							number: {
-								isExpression: true, value: '$(local:zone)'
+								isExpression: true, value: `$(local:zone) - 1`
 							},
 							mute: false,
 						},
@@ -283,10 +283,10 @@ export function getPresets(self) {
 				feedbackId: FeedbackId.InputToZoneMute,
 				options: {
 					input: {
-						isExpression: true, value: '$(local:input)'
+						isExpression: true, value: `$(local:input) - 1`
 					},
 					zone: {
-						isExpression: true, value: '$(local:zone)'
+						isExpression: true, value: `$(local:zone) - 1`
 					},
 				},
 				style: {
