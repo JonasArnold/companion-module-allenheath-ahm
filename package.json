@@ -15,7 +15,7 @@
 		"url": "git+https://github.com/bitfocus/companion-module-allenheath-ahm.git"
 	},
 	"dependencies": {
-		"@companion-module/base": "^2.0.0"
+		"@companion-module/base": "~2.0.0"
 	},
 	"devDependencies": {
 		"@companion-module/tools": "^2.7.2",
