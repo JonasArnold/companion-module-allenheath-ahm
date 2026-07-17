@@ -110,9 +110,11 @@ export function parseResponse(data) {
 		let preset = presetId + presetIdOffset * 128 + 1
 
 		state.setPreset(preset)
+		// run poller, to request new levels and mutes after preset recall
 		poller.poll()
 
 		log.debug('PresetRecall', { presetId, presetIdOffset, preset }, data)
+		log.info('Preset was recalled', { preset })
 
 		companion.setVariableValues({ currentPreset: state.getPreset() })
 		companion.checkFeedbacks(FeedbackId.CurrentPreset)
