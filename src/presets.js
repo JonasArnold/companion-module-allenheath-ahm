@@ -2,7 +2,7 @@ import { Colors } from './utility/constants.js'
 import { FeedbackId } from './feedbacks.js'
 import { ActionId } from './actions.js'
 
-export function getPresets(numberOfInputs, numberOfZones) {
+export function getPresets(numberOfInputs, numberOfZones, numberOfControlGroups) {
 	let presets = []
 
 	// Mute Inputs
@@ -114,7 +114,7 @@ export function getPresets(numberOfInputs, numberOfZones) {
 	}
 
 	// Mute Control Groups
-	for (let index = 0; index < 32; index++) {
+	for (let index = 0; index < numberOfControlGroups; index++) {
 		presets.push({
 			type: 'button',
 			category: 'Mute Control Groups',
