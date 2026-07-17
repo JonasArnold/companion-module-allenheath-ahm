@@ -19,7 +19,9 @@ export default [
 			// ahm_type was introduced in this update, previous installations defaulted to ahm64
 			if (config.ahm_type == undefined || config.ahm_type == '') {
 				let defaultConfigType = 'ahm64'
-				console.info(`Updating Configuration, AHM Type was ${config.ahm_type}. Now set to default (${defaultConfigType}).`)
+				console.info(
+					`Updating Configuration, AHM Type was ${config.ahm_type}. Now set to default (${defaultConfigType}).`,
+				)
 				config.ahm_type = defaultConfigType
 				changes.updatedConfig = config
 			}
@@ -31,7 +33,9 @@ export default [
 			if (action.actionId === 'mute_input' || action.actionId === 'mute_zone' || action.actionId === 'input_to_zone') {
 				// check if the action has the option inputChannel (by checking if property exists)
 				if (Object.hasOwn(action.options, 'inputChannel')) {
-					console.info(`Updating Configuration, Found action with old option inputChannel=${action.options.inputChannel}, converting to new mute_number`)
+					console.info(
+						`Updating Configuration, Found action with old option inputChannel=${action.options.inputChannel}, converting to new mute_number`,
+					)
 
 					action.options.mute_number = action.options.inputChannel
 					delete action.options.inputChannel
@@ -83,6 +87,39 @@ export default [
 			updatedFeedbacks: [],
 		}
 
+		const feedbackDropdownOptionsToZeroBase = {
+			inputMute: ['input'],
+			inputLevel: ['input'],
+			zoneMute: ['zone'],
+			zoneLevel: ['zone'],
+			cgMute: ['cg'],
+			cgLevel: ['cg'],
+			inputToZoneMute: ['input', 'zone'],
+			inputToZoneLevel: ['input', 'zone'],
+		}
+
+		function convertOneBasedFeedbackDropdownOptionsToZeroBased(feedback) {
+			const optionIds = feedbackDropdownOptionsToZeroBase[feedback.feedbackId]
+			if (!optionIds) return false
+
+			let updated = false
+			for (const optionId of optionIds) {
+				if (!Object.hasOwn(feedback.options, optionId)) continue
+
+				const value = feedback.options[optionId]
+				const numberValue = Number(value)
+				if (!Number.isInteger(numberValue) || numberValue <= 0) continue
+
+				console.info(
+					`Updating Feedback, Found ${feedback.feedbackId} option ${optionId}=${numberValue}, converting to ${numberValue - 1}`,
+				)
+				feedback.options[optionId] = numberValue - 1
+				updated = true
+			}
+
+			return updated
+		}
+
 		// update config
 		if (props.config) {
 			let config = props.config
@@ -102,6 +139,13 @@ export default [
 			config.pollRate = 10000
 
 			changes.updatedConfig = config
+		}
+
+		// update feedbacks, changing from textbox input (one-based) to dropdown with zero-based values
+		for (const feedback of props.feedbacks) {
+			if (convertOneBasedFeedbackDropdownOptionsToZeroBased(feedback)) {
+				changes.updatedFeedbacks.push(feedback)
+			}
 		}
 
 		return changes
