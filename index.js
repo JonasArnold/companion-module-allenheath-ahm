@@ -131,7 +131,7 @@ export default class AHMInstance extends InstanceBase {
 	}
 
 	initPresets() {
-		getPresets(this)  // this.setPresetDefinitions now lives in presets.js
+		getPresets(this) // this.setPresetDefinitions now lives in presets.js
 	}
 
 	initActions() {

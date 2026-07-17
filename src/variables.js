@@ -58,7 +58,7 @@ export function getVariables(manTrackInputs, manTrackZones, manTrackCGs) {
 	}
 
 	// Variable for recalled preset data
-	variableDefinitions['currentPreset'] ={
+	variableDefinitions['currentPreset'] = {
 		name: `Current Preset`,
 		variableId: 'currentPreset',
 	}
