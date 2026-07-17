@@ -8,7 +8,7 @@ import { parseIDsToArray, getVarNameInputLevel, getVarNameZoneLevel, getVarNameC
  * @returns
  */
 export function getVariables(manTrackInputs, manTrackZones, manTrackCGs) {
-	const variableDefinitions = []
+	const variableDefinitions = {}
 	const variableInitValuesArray = []
 
 	const cleanManIns = parseIDsToArray(manTrackInputs)
@@ -19,10 +19,9 @@ export function getVariables(manTrackInputs, manTrackZones, manTrackCGs) {
 	if (cleanManIns.length != 0) {
 		for (const i of cleanManIns) {
 			let varId = getVarNameInputLevel(i)
-			variableDefinitions.push({
+			variableDefinitions[varId] = {
 				name: `Input ${i} Level`,
-				variableId: varId,
-			})
+			}
 			// initialize with ?
 			variableInitValuesArray.push({
 				[varId]: '?',
@@ -34,10 +33,9 @@ export function getVariables(manTrackInputs, manTrackZones, manTrackCGs) {
 	if (cleanManZones.length != 0) {
 		for (const i of cleanManZones) {
 			let varId = getVarNameZoneLevel(i)
-			variableDefinitions.push({
+			variableDefinitions[varId] = {
 				name: `Zone ${i} Level`,
-				variableId: varId,
-			})
+			}
 			// initialize with ?
 			variableInitValuesArray.push({
 				[varId]: '?',
@@ -49,10 +47,9 @@ export function getVariables(manTrackInputs, manTrackZones, manTrackCGs) {
 	if (cleanManCGs.length != 0) {
 		for (const i of cleanManCGs) {
 			let varId = getVarNameCGLevel(i)
-			variableDefinitions.push({
+			variableDefinitions[varId] = {
 				name: `Control Group ${i} Level`,
-				variableId: varId,
-			})
+			}
 			// initialize with ?
 			variableInitValuesArray.push({
 				[varId]: '?',
@@ -61,10 +58,10 @@ export function getVariables(manTrackInputs, manTrackZones, manTrackCGs) {
 	}
 
 	// Variable for recalled preset data
-	variableDefinitions.push({
+	variableDefinitions['currentPreset'] ={
 		name: `Current Preset`,
 		variableId: 'currentPreset',
-	})
+	}
 	// initialize with '0'
 	variableInitValuesArray.push({
 		currentPreset: '0',

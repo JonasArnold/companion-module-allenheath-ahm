@@ -1,6 +1,7 @@
 {
 	"id": "allenheath-ahm",
 	"name": "allenheath-ahm",
+	"type": "connection",
 	"shortname": "AHM",
 	"description": "Allen & Heath AHM module for Companion",
 	"version": "0.0.0",
@@ -22,7 +23,7 @@
 		}
 	],
 	"runtime": {
-		"type": "node18",
+		"type": "node22",
 		"api": "nodejs-ipc",
 		"apiVersion": "0.0.0",
 		"entrypoint": "../index.js"

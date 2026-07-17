@@ -1,9 +1,9 @@
-import { InstanceBase, runEntrypoint, InstanceStatus } from '@companion-module/base'
+import { InstanceBase, InstanceStatus } from '@companion-module/base'
 import { getActions } from './src/actions.js'
 import { getPresets } from './src/presets.js'
 import { getVariables } from './src/variables.js'
 import { getFeedbacks } from './src/feedbacks.js'
-import UpgradeScripts from './src/upgrades.js'
+import upgradeScripts from './src/upgrades.js'
 import { ChannelType } from './src/utility/constants.js'
 import { configFields } from './src/config.js'
 import { trackAHMParams } from './src/state/AHMState.js'
@@ -15,7 +15,7 @@ import { createLogger } from './src/utility/log.js'
 const MIDI_PORT = 51325
 const log = createLogger('Instance')
 
-class AHMInstance extends InstanceBase {
+export default class AHMInstance extends InstanceBase {
 	constructor(internal) {
 		super(internal)
 	}
@@ -131,7 +131,7 @@ class AHMInstance extends InstanceBase {
 	}
 
 	initPresets() {
-		this.setPresetDefinitions(getPresets(this.numberOfInputs, this.numberOfZones, this.numberOfControlGroups))
+		getPresets(this)  // this.setPresetDefinitions now lives in presets.js
 	}
 
 	initActions() {
@@ -139,4 +139,4 @@ class AHMInstance extends InstanceBase {
 	}
 }
 
-runEntrypoint(AHMInstance, UpgradeScripts)
+export const UpgradeScripts = upgradeScripts
