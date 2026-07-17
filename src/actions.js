@@ -223,6 +223,25 @@ export function getActions(numberOfInputs, numberOfZones) {
 		},
 	}
 
+	actions[ActionId.MuteInputToZone] = {
+		name: 'Mute Input to Zone',
+		options: muteOptions('Input', numberOfInputs, -1).concat(listOptions('Zone', numberOfZones, -1)),
+		callback: (action) => {
+			let inputNumber = parseInt(action.options.mute_number)
+			let zoneNumber = parseInt(action.options.number)
+			tcpClient.queue(setInputToZoneMute(inputNumber, zoneNumber, action.options.mute))
+
+			// manually update internal state
+			state.setSend(ChannelType.Input, inputNumber, zoneNumber, undefined, action.options.mute)
+			companion.checkFeedbacks(FeedbackId.InputToZoneMute)
+
+			console.log(inputNumber, zoneNumber, SendInfoType.MUTE)
+			setTimeout(() => {
+				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.MUTE, inputNumber, zoneNumber))
+			}, 200)
+		},
+	}
+
 	// LEVEL ACTIONS //
 
 	actions[ActionId.SetInputLevel] = {
@@ -308,51 +327,6 @@ export function getActions(numberOfInputs, numberOfZones) {
 		},
 	}
 
-	actions[ActionId.RecallPreset] = {
-		name: 'Recall Preset',
-		options: listOptions('Preset', PRESET_COUNT, -1),
-		callback: (action) => {
-			// note: presetNumber is one less than the actual preset number, since the action list starts at 0
-			let presetNumber = parseInt(action.options.number)
-			let bank = Math.floor(presetNumber / 128)
-			let presetOffset = presetNumber % 128
-			let buffers = [Buffer.from([0xb0, 0x00, bank, 0xc0, presetOffset])]
-			tcpClient.queue(buffers)
-		},
-	}
-
-	actions[ActionId.PlaybackTrack] = {
-		name: 'Playback Track',
-		options: listOptions('Playback Track', PLAYBACK_COUNT, -1).concat(playbackChannelOptions('Playback Channel')),
-		callback: (action) => {
-			let trackNumber = parseInt(action.options.number)
-			let playbackChannel = parseInt(action.options.playbackChannel)
-
-			// console.log(`action playback_track: Got Callback with parameters trackNumber: ${action.options.number} and playbackChannel ${action.options.playbackChannel}.`)
-
-			tcpClient.queue(setPlaybackTrack(trackNumber, playbackChannel))
-		},
-	}
-
-	actions[ActionId.MuteInputToZone] = {
-		name: 'Mute Input to Zone',
-		options: muteOptions('Input', numberOfInputs, -1).concat(listOptions('Zone', numberOfZones, -1)),
-		callback: (action) => {
-			let inputNumber = parseInt(action.options.mute_number)
-			let zoneNumber = parseInt(action.options.number)
-			tcpClient.queue(setInputToZoneMute(inputNumber, zoneNumber, action.options.mute))
-
-			// manually update internal state
-			state.setSend(ChannelType.Input, inputNumber, zoneNumber, undefined, action.options.mute)
-			companion.checkFeedbacks(FeedbackId.InputToZoneMute)
-
-			console.log(inputNumber, zoneNumber, SendInfoType.MUTE)
-			setTimeout(() => {
-				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.MUTE, inputNumber, zoneNumber))
-			}, 200)
-		},
-	}
-
 	actions[ActionId.AdjustInputToZoneSendLevel] = {
 		name: 'Increment/Decrement Input to Zone Send Level',
 		options: incDecOptions('Input', numberOfInputs, -1).concat(listOptions('Zone', numberOfZones, -1)),
@@ -389,11 +363,35 @@ export function getActions(numberOfInputs, numberOfZones) {
 		},
 	}
 
-	// actions['get_phantom'] = {
-	// 	name: 'Get phantom info',
-	// 	options: listOptions(ChannelType.Input, 64, -1),
-	//callback: (action) => {}
-	// }
+	// PRESET ACTIONS //
+
+	actions[ActionId.RecallPreset] = {
+		name: 'Recall Preset',
+		options: listOptions('Preset', PRESET_COUNT, -1),
+		callback: (action) => {
+			// note: presetNumber is one less than the actual preset number, since the action list starts at 0
+			let presetNumber = parseInt(action.options.number)
+			let bank = Math.floor(presetNumber / 128)
+			let presetOffset = presetNumber % 128
+			let buffers = [Buffer.from([0xb0, 0x00, bank, 0xc0, presetOffset])]
+			tcpClient.queue(buffers)
+		},
+	}
+
+	// PLAYBACK ACTIONS //
+
+	actions[ActionId.PlaybackTrack] = {
+		name: 'Playback Track',
+		options: listOptions('Playback Track', PLAYBACK_COUNT, -1).concat(playbackChannelOptions('Playback Channel')),
+		callback: (action) => {
+			let trackNumber = parseInt(action.options.number)
+			let playbackChannel = parseInt(action.options.playbackChannel)
+
+			// console.log(`action playback_track: Got Callback with parameters trackNumber: ${action.options.number} and playbackChannel ${action.options.playbackChannel}.`)
+
+			tcpClient.queue(setPlaybackTrack(trackNumber, playbackChannel))
+		},
+	}
 
 	return actions
 }
