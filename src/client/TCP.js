@@ -1,14 +1,18 @@
-import { TCPHelper, InstanceStatus, InstanceBase } from '@companion-module/base'
+import { TCPHelper, InstanceStatus } from '@companion-module/base'
 import { parseResponse } from './parseResponse.js'
 import { Priority } from '../utility/constants.js'
 import { getContext } from '../context.js'
+import { createLogger, formatHex } from '../utility/log.js'
+
+const log = createLogger('TCP')
+const ENABLE_TCP_LOGGING = false
+const TIME_BETW_MULTIPLE_REQ_MS = 150
 
 /**
  * TCP Client factory function. Creates TCP client and handles request queueing, sending, and receiving.
- * @param {Number} reqTime - Time between queued requests in ms
  * @returns {Function[]} Returns helper functions
  */
-export function TCPClient(reqTime) {
+export function TCPClient() {
 	let midiSocket
 	let txQueue = []
 	let queueRunning = false
@@ -31,31 +35,35 @@ export function TCPClient(reqTime) {
 
 		if (!host || !port) return
 
-		const { companion, state, poller } = getContext()
+		const { companion } = getContext()
 
 		midiSocket = new TCPHelper(host, port)
 
 		midiSocket.on('status_change', (status, message) => {
+			log.debug('StatusChanged', { status, message: message ?? '' })
 			companion.updateStatus(status)
 		})
 
 		midiSocket.on('close', () => {
+			isConnected = false
+			log.info('Disconnected', { host, port })
 			if (onDisconnectCallback) {
 				onDisconnectCallback()
 			}
 		})
 
 		midiSocket.on('error', (err) => {
-			companion.log('error', 'Error: ' + err.message)
+			log.error('SocketError', { message: err.message })
 			companion.updateStatus(InstanceStatus.ConnectionFailure)
 		})
 
 		midiSocket.on('data', (data) => {
+			if (ENABLE_TCP_LOGGING) console.log(`[AHM][TCP][Raw] Received Hex=${formatHex(data)}`)
 			parseResponse(data)
 		})
 
 		midiSocket.on('connect', () => {
-			companion.log('debug', `MIDI Connected to ${host}`)
+			log.info('Connected', { host, port })
 			companion.updateStatus(InstanceStatus.Ok)
 			isConnected = true
 
@@ -97,8 +105,7 @@ export function TCPClient(reqTime) {
 	}
 
 	async function startQueue() {
-		const { companion } = getContext()
-		if ( !isConnected ) return
+		if (!isConnected) return
 
 		// if queue is already running, let it be
 		if (queueRunning) return
@@ -111,12 +118,13 @@ export function TCPClient(reqTime) {
 			try {
 				send(txBuffer.buffers)
 			} catch (e) {
-				companion.log('error', 'Buffer sending error: ' + e)
+				log.error('SendFailed', { message: e.message ?? e })
 			}
+			if (ENABLE_TCP_LOGGING) console.log(`[AHM][TCP][Queue] Progress remaining=${txQueue.length}`)
 
 			await new Promise((resolve) => {
 				cancelSleep = resolve
-				setTimeout(resolve, reqTime)
+				setTimeout(resolve, TIME_BETW_MULTIPLE_REQ_MS)
 			})
 			cancelSleep = null
 		}
@@ -125,15 +133,13 @@ export function TCPClient(reqTime) {
 	}
 
 	function send(buffers) {
-		const { companion } = getContext()
-		if ( !isConnected ) return
+		if (!isConnected) return
 
 		if (buffers.length !== 0) {
 			for (let i = 0; i < buffers.length; i++) {
 				if (!midiSocket) return
-				companion.log('debug', `sending ${buffers[i].toString('hex')} via MIDI TCP`)
+				if (ENABLE_TCP_LOGGING) console.log(`[AHM][TCP][Raw] Sent Hex=${formatHex(buffers[i])}`)
 				midiSocket.send(buffers[i])
-				companion.log('debug', `2. Sending at: ${Date.now()} -- ${buffers[i].toString('hex')}`)
 			}
 		}
 	}

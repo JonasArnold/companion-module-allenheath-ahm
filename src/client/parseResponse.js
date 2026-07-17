@@ -2,11 +2,19 @@ import { ChannelType } from '../utility/constants.js'
 import { getVarNameInputLevel, getVarNameZoneLevel, getVarNameCGLevel, getDbuValue } from '../utility/helpers.js'
 import { getContext } from '../context.js'
 import { FeedbackId } from '../feedbacks.js'
+import { createLogger } from '../utility/log.js'
+
+const log = createLogger('ParseResponse')
 
 const LEVEL_HANDLERS = {
 	0xb0: { type: ChannelType.Input, getVarName: getVarNameInputLevel, feedback: FeedbackId.InputLevel, label: 'Input' },
 	0xb1: { type: ChannelType.Zone, getVarName: getVarNameZoneLevel, feedback: FeedbackId.ZoneLevel, label: 'Zone' },
-	0xb2: { type: ChannelType.ControlGroup, getVarName: getVarNameCGLevel, feedback: FeedbackId.ControlGroupLevel, label: 'Control Group' },
+	0xb2: {
+		type: ChannelType.ControlGroup,
+		getVarName: getVarNameCGLevel,
+		feedback: FeedbackId.ControlGroupLevel,
+		label: 'Control Group',
+	},
 }
 
 const MUTE_HANDLERS = {
@@ -17,7 +25,6 @@ const MUTE_HANDLERS = {
 
 export function parseResponse(data) {
 	const { companion, state, poller } = getContext()
-	console.log('INCOMING RAW:', data.toString('hex'))
 
 	if (data[0] === 0xf0) {
 		// receiving SysEx data
@@ -29,13 +36,10 @@ export function parseResponse(data) {
 		if (data[9] === 0x02) {
 			// receiving send level data
 			let levelRaw = parseInt(data[13])
+			let levelDbu = getDbuValue(levelRaw)
+			log.debug('InputToZoneLevel', { inputId, zoneId, levelRaw, levelDbu }, data)
 
-			companion.log(
-				'info',
-				`PARSED: Send level data -- Input ${inputId + 1} to Zone ${zoneId + 1} has new level: ${levelRaw} (dec) = ${getDbuValue(levelRaw)} (dBu)`,
-			)
-
-			state.setSend(ChannelType.Input, inputId, zoneId, levelRaw, undefined) // log below displays correct data, this line doesn't
+			state.setSend(ChannelType.Input, inputId, zoneId, levelRaw, undefined)
 			companion.checkFeedbacks(FeedbackId.InputToZoneLevel)
 			return
 		}
@@ -43,37 +47,41 @@ export function parseResponse(data) {
 		if (data[9] === 0x03) {
 			// receiving send mute data
 			let mute = data[13] === 127 ? true : data[13] === 63 ? false : undefined
-			if (mute === undefined) return
-
-			companion.log(
-				'info',
-				`PARSED: Send mute data -- Input ${inputId + 1} to Zone ${zoneId + 1} has new mute status: ${mute ? 'muted' : 'unmuted'}`,
-			)
+			if (mute === undefined) {
+				log.warn('UnparsedResponse', { reason: 'InvalidSendMuteValue' }, data)
+				return
+			}
+			log.debug('InputToZoneMute', { inputId, zoneId, mute }, data)
 
 			state.setSend(ChannelType.Input, inputId, zoneId, undefined, mute)
 			companion.checkFeedbacks(FeedbackId.InputToZoneMute)
 			return
 		}
+		log.warn('UnparsedResponse', { reason: 'UnknownSysExResponse' }, data)
 		return
 	}
 
 	if (data[1] === 0x63 && data[3] === 0x62) {
 		// second value of hex:63 and fourth value of hex:62 means level data
 		const handler = LEVEL_HANDLERS[data[0]]
-		if (!handler) return
+		if (!handler) {
+			log.warn('UnparsedResponse', { reason: 'UnknownChannelLevelType' }, data)
+			return
+		}
 
 		// Data shared across all channel types:
 		let channelId = parseInt(data[2])
 		let level = parseInt(data[6])
+		let levelDbu = getDbuValue(level)
 		let variableName = handler.getVarName(channelId + 1) // +1 because the channelId is 0-indexed
-
-		companion.log(
-			'info',
-			`PARSED: ${handler.label} ${channelId + 1} has new level: ${level} (dec) = ${getDbuValue(level)} (dBu), updating variable ${variableName}`,
+		log.debug(
+			'ChannelLevel',
+			{ channelType: handler.label.replaceAll(' ', ''), channelId, level, levelDbu, variableName },
+			data,
 		)
 
 		state.setChannel(handler.type, channelId, level, undefined)
-		companion.setVariableValues({ [variableName]: getDbuValue(level) })
+		companion.setVariableValues({ [variableName]: levelDbu })
 		companion.checkFeedbacks(handler.feedback)
 		return
 	}
@@ -84,12 +92,11 @@ export function parseResponse(data) {
 		let channelId = parseInt(data[1])
 		let mute = data[2] === 127 ? true : data[2] === 63 ? false : undefined
 
-		companion.log(
-			'info',
-			`PARSED: ${handler.label} ${channelId + 1} has new mute status: ${mute ? 'muted' : 'unmuted'}`,
-		)
-
-		if (!handler || mute === undefined) return
+		if (!handler || mute === undefined) {
+			log.warn('UnparsedResponse', { reason: 'InvalidChannelMuteValue' }, data)
+			return
+		}
+		log.debug('ChannelMute', { channelType: handler.label.replaceAll(' ', ''), channelId, mute }, data)
 
 		state.setChannel(handler.type, channelId, undefined, mute)
 		companion.checkFeedbacks(handler.feedback)
@@ -105,13 +112,12 @@ export function parseResponse(data) {
 		state.setPreset(preset)
 		poller.poll()
 
-		companion.log(
-			'info',
-			`PARSED: Preset was recalled: ${state.getPreset()}`,
-		)
+		log.debug('PresetRecall', { presetId, presetIdOffset, preset }, data)
 
 		companion.setVariableValues({ currentPreset: state.getPreset() })
 		companion.checkFeedbacks(FeedbackId.CurrentPreset)
 		return
 	}
+
+	log.warn('UnparsedResponse', { reason: 'UnknownResponse' }, data)
 }

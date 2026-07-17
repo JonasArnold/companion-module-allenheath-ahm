@@ -1,5 +1,8 @@
 import { checkIfValueOfEnum, getChTypeOfSendType, getSendChTypeOfSendType } from '../utility/helpers.js'
-import { ChannelType, SendInfoType, SendType } from '../utility/constants.js'
+import { SendInfoType, SendType } from '../utility/constants.js'
+import { createLogger } from '../utility/log.js'
+
+const log = createLogger('FormatMIDI')
 
 /**
  * Requests either if input send to zone is muted, or returns send level
@@ -17,11 +20,7 @@ export function requestSendInfo(sendType, infoType, channelId, sendChannelId) {
 	let chType = getChTypeOfSendType(sendType)
 	let sendChType = getSendChTypeOfSendType(sendType)
 
-	console.log(
-		`requestSendInfo ${infoType}: chType: ${chType}, ch: ${channelId}, sendChType: ${sendChType}, sendChNumber: ${sendChannelId}`,
-	)
-
-	return [
+	const command = [
 		Buffer.from([
 			0xf0,
 			0x00,
@@ -41,6 +40,9 @@ export function requestSendInfo(sendType, infoType, channelId, sendChannelId) {
 			0xf7,
 		]),
 	]
+	const commandName = infoType === SendInfoType.LEVEL ? 'RequestSendLevel' : 'RequestSendMute'
+	log.debug(commandName, { sendType, infoType, chType, channelId, sendChType, sendChannelId }, command)
+	return command
 }
 
 /**
@@ -60,7 +62,7 @@ export function incDecSendLevelCallback(action, type) {
 	let sendChannelId = parseInt(action.options.number)
 	let incdecSelector = action.options.incdec == 'inc' ? 0x7f : 0x3f
 
-	return [
+	const command = [
 		Buffer.from([
 			0xf0,
 			0x00,
@@ -79,6 +81,12 @@ export function incDecSendLevelCallback(action, type) {
 			0xf7,
 		]),
 	]
+	log.debug(
+		'AdjustSendLevel',
+		{ type, chType, channelId, sendChType, sendChannelId, operation: action.options.incdec, selector: incdecSelector },
+		command,
+	)
+	return command
 }
 
 /**
@@ -89,7 +97,7 @@ export function incDecSendLevelCallback(action, type) {
  * @returns {Buffer} Hex MIDI buffer ready to send
  */
 export function setInputToZoneMute(inputId, zoneId, mute) {
-	return [
+	const command = [
 		Buffer.from([
 			0xf0,
 			0x00,
@@ -108,4 +116,6 @@ export function setInputToZoneMute(inputId, zoneId, mute) {
 			0xf7,
 		]),
 	]
+	log.debug('SetInputToZoneMute', { inputId, zoneId, mute }, command)
+	return command
 }

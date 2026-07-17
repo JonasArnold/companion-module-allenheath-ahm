@@ -2,9 +2,9 @@ import { ChannelType, Priority, SendInfoType, SendType } from '../utility/consta
 import { requestLevelInfo, requestMuteInfo } from '../formatMIDI/channels.js'
 import { requestSendInfo } from '../formatMIDI/sends.js'
 import { getContext } from '../context.js'
+import { createLogger } from '../utility/log.js'
 
-const LOG_PREFIX = '[State Poller]'
-const log = (message) => console.log(`${LOG_PREFIX} ${message}`)
+const log = createLogger('PollState')
 
 /**
  * AHM state polling factory function.
@@ -48,12 +48,12 @@ export function pollStateTimer(getSocket, interval = 10000, onError = console.er
 				socket.queue(req, Priority.LOW)
 			}
 
-			log(`Inputs: ${formatChannelIds(inputChannels)}`)
-			log(`Zones: ${formatChannelIds(zoneChannels)}`)
-			log(`Control groups: ${formatChannelIds(controlGroups)}`)
-			log(`Input -> Zone sends: ${formatSendIds(inputToZoneSends)}`)
-			log(`Zone -> Zone sends: ${formatSendIds(zoneToZoneSends)}`)
-			log(`Queued ${requests.length} requests (${channelCount} channels, ${sendCount} sends)`)
+			log.debug(`Inputs: ${formatChannelIds(inputChannels)}`)
+			log.debug(`Zones: ${formatChannelIds(zoneChannels)}`)
+			log.debug(`Control groups: ${formatChannelIds(controlGroups)}`)
+			log.debug(`Input -> Zone sends: ${formatSendIds(inputToZoneSends)}`)
+			log.debug(`Zone -> Zone sends: ${formatSendIds(zoneToZoneSends)}`)
+			log.debug(`Queued ${requests.length} requests (${channelCount} channels, ${sendCount} sends)`)
 		} catch (err) {
 			onError(err)
 		}
@@ -111,7 +111,7 @@ export function pollStateTimer(getSocket, interval = 10000, onError = console.er
 
 	function start() {
 		stopped = false
-		log(`Started with an interval of ${interval} ms`)
+		log.debug(`Started with an interval of ${interval} ms`)
 		poll()
 	}
 
@@ -123,7 +123,7 @@ export function pollStateTimer(getSocket, interval = 10000, onError = console.er
 			timeout = null
 		}
 
-		log('Stopped')
+		log.debug('Stopped')
 	}
 
 	return {

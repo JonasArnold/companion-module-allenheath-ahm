@@ -10,9 +10,10 @@ import { trackAHMParams } from './src/state/AHMState.js'
 import { TCPClient } from './src/client/TCP.js'
 import { pollStateTimer } from './src/client/pollState.js'
 import { initContext } from './src/context.js'
+import { createLogger } from './src/utility/log.js'
 
 const MIDI_PORT = 51325
-const TIME_BETW_MULTIPLE_REQ_MS = 150
+const log = createLogger('Instance')
 
 class AHMInstance extends InstanceBase {
 	constructor(internal) {
@@ -24,43 +25,10 @@ class AHMInstance extends InstanceBase {
 
 		this.updateStatus(InstanceStatus.Connecting)
 
-		// default to 64 in/outs (AHM-64), create all arrays with maximum 64 channels
-		this.numberOfInputs = parseInt(this.config.ahm_type) || 64
-		this.numberOfZones = parseInt(this.config.ahm_type) || 64
-		this.numberOfControlGroups = 32
-
-		console.log(`This module is set up for an AHM-${this.numberOfInputs}`)
-
-		// Set up state container
 		this.AHMState = trackAHMParams()
+		this.tcpClient = TCPClient()
 
-		// Set up manual tracking
-		this.AHMState.setManualTracking(ChannelType.Input, this.config.manTrackInputs)
-		this.AHMState.setManualTracking(ChannelType.Zone, this.config.manTrackZones)
-		this.AHMState.setManualTracking(ChannelType.ControlGroup, this.config.manTrackCGs)
-
-		// Set up state polling
-		this.pollState = pollStateTimer(
-			() => this.tcpClient,
-			this.config.pollRate,
-			(err) => console.error('Poller error:', err),
-		)
-
-		// Assign TCP client
-		this.tcpClient = TCPClient(TIME_BETW_MULTIPLE_REQ_MS)
-
-        // Register everything in context before initializing Companion definitions
-        initContext({
-            tcpClient: this.tcpClient,
-            state: this.AHMState,
-            companion: {
-                checkFeedbacks: (...a) => this.checkFeedbacks(...a),
-                log: (...a) => this.log(...a),
-                updateStatus: (...a) => this.updateStatus(...a),
-                setVariableValues: (...a) => this.setVariableValues(...a),
-            },
-            poller: this.pollState,
-        })
+		this.configureRuntime()
 
 		// Polling callback hooks
 		this.tcpClient.onConnected(() => {
@@ -85,45 +53,63 @@ class AHMInstance extends InstanceBase {
 		this.tcpClient.destroy()
 		this.pollState.stop()
 		this.AHMState.reset() // Clear out DSP state
-		this.log('debug', 'destroy')
+		log.debug('Destroyed')
 	}
 
 	async configUpdated(config) {
 		this.config = config
 
-		this.numberOfInputs = parseInt(this.config.ahm_type)
-		this.numberOfZones = parseInt(this.config.ahm_type)
-
 		this.AHMState.reset() // Clear out DSP state
 
-		// Set up manual tracking
-		this.AHMState.setManualTracking(ChannelType.Input, this.config.manTrackInputs)
-		this.AHMState.setManualTracking(ChannelType.Zone, this.config.manTrackZones)
-		this.AHMState.setManualTracking(ChannelType.ControlGroup, this.config.manTrackCGs)
-
-		// Set up state polling
-		this.pollState = pollStateTimer(
-			() => this.tcpClient,
-			this.config.pollRate,
-			(err) => console.error('Poller error:', err),
-		)
-
-        // Re-register context with updated references
-        initContext({
-            tcpClient: this.tcpClient,
-            state: this.AHMState,
-            companion: {
-                checkFeedbacks: (...a) => this.checkFeedbacks(...a),
-                log: (...a) => this.log(...a),
-                updateStatus: (...a) => this.updateStatus(...a),
-                setVariableValues: (...a) => this.setVariableValues(...a),
-            },
-            poller: this.pollState,
-        })
+		this.configureRuntime()
 
 		this.initActions()
 		this.initVariables()
 		this.tcpClient.init(this.config.host, MIDI_PORT)
+	}
+
+	configureRuntime() {
+		this.configureDevice()
+		this.configurePoller()
+		this.registerContext()
+		this.configureManualTracking()
+		log.info('Configured', { ahmType: `AHM-${this.config.ahm_type}` })
+	}
+
+	configureDevice() {
+		// Default to 64 inputs/zones when no valid AHM type is configured.
+		this.numberOfInputs = parseInt(this.config.ahm_type) || 64
+		this.numberOfZones = parseInt(this.config.ahm_type) || 64
+		this.numberOfControlGroups = 32
+	}
+
+	configureManualTracking() {
+		this.AHMState.setManualTracking(ChannelType.Input, this.config.manTrackInputs)
+		this.AHMState.setManualTracking(ChannelType.Zone, this.config.manTrackZones)
+		this.AHMState.setManualTracking(ChannelType.ControlGroup, this.config.manTrackCGs)
+	}
+
+	configurePoller() {
+		this.pollState?.stop()
+		this.pollState = pollStateTimer(
+			() => this.tcpClient,
+			this.config.pollRate,
+			(err) => log.error('PollerError', { message: err.message ?? err }),
+		)
+	}
+
+	registerContext() {
+		initContext({
+			tcpClient: this.tcpClient,
+			state: this.AHMState,
+			companion: {
+				checkFeedbacks: (...a) => this.checkFeedbacks(...a),
+				log: (...a) => this.log(...a),
+				updateStatus: (...a) => this.updateStatus(...a),
+				setVariableValues: (...a) => this.setVariableValues(...a),
+			},
+			poller: this.pollState,
+		})
 	}
 
 	getConfigFields() {
@@ -141,15 +127,15 @@ class AHMInstance extends InstanceBase {
 	}
 
 	initFeedbacks() {
-		this.setFeedbackDefinitions(getFeedbacks(this.numberOfInputs))
+		this.setFeedbackDefinitions(getFeedbacks(this.numberOfInputs, this.numberOfZones, this.numberOfControlGroups))
 	}
 
 	initPresets() {
-		this.setPresetDefinitions(getPresets(this.numberOfInputs, this.numberOfZones))
+		this.setPresetDefinitions(getPresets(this.numberOfInputs, this.numberOfZones, this.numberOfControlGroups))
 	}
 
 	initActions() {
-		this.setActionDefinitions(getActions(this.numberOfInputs, this.numberOfZones))
+		this.setActionDefinitions(getActions(this.numberOfInputs, this.numberOfZones, this.numberOfControlGroups))
 	}
 }
 

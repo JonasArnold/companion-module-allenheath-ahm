@@ -1,8 +1,8 @@
-import { checkIfValueOfEnum, getChannelTypeName } from '../utility/helpers.js'
+import { checkIfValueOfEnum } from '../utility/helpers.js'
 import { ChannelType } from '../utility/constants.js'
+import { createLogger } from '../utility/log.js'
 
-const LOG_PREFIX = '[MIDI Builder]'
-const log = (message) => console.log(`${LOG_PREFIX} ${message}`)
+const log = createLogger('FormatMIDI')
 
 /**
  * Requests channel level
@@ -14,24 +14,9 @@ export function requestLevelInfo(type, id) {
 	if (checkIfValueOfEnum(type, ChannelType) == false) return
 
 	const command = [
-		Buffer.from([
-			0xf0,
-			0x00,
-			0x00,
-			0x1a,
-			0x50,
-			0x12,
-			0x01,
-			0x00,
-			parseInt(type),
-			0x01,
-			0x0b,
-			0x17,
-			parseInt(id),
-			0xf7,
-		]),
+		Buffer.from([0xf0, 0x00, 0x00, 0x1a, 0x50, 0x12, 0x01, 0x00, parseInt(type), 0x01, 0x0b, 0x17, parseInt(id), 0xf7]),
 	]
-	log(`Request level -- type: ${getChannelTypeName(type)}, channel: ${parseInt(id) + 1}`)
+	log.debug('RequestChannelLevel', { type, channelId: id }, command)
 	return command
 }
 
@@ -45,23 +30,9 @@ export function requestMuteInfo(type, id) {
 	if (checkIfValueOfEnum(type, ChannelType) == false) return
 
 	const command = [
-		Buffer.from([
-			0xf0,
-			0x00,
-			0x00,
-			0x1a,
-			0x50,
-			0x12,
-			0x01,
-			0x00,
-			parseInt(type),
-			0x01,
-			0x09,
-			parseInt(id),
-			0xf7,
-		]),
+		Buffer.from([0xf0, 0x00, 0x00, 0x1a, 0x50, 0x12, 0x01, 0x00, parseInt(type), 0x01, 0x09, parseInt(id), 0xf7]),
 	]
-	log(`Request mute -- type: ${getChannelTypeName(type)}, channel: ${parseInt(id) + 1}`)
+	log.debug('RequestChannelMute', { type, channelId: id }, command)
 	return command
 }
 
@@ -81,7 +52,7 @@ export function setLevelCallback(action, type) {
 	let levelDec = parseInt(action.options.level)
 
 	const command = [Buffer.from([typeHex, 0x63, chNumber, typeHex, 0x62, 0x17, typeHex, 0x06, levelDec])]
-	log(`Set level -- type: ${getChannelTypeName(type)}, channel: ${chNumber + 1}, level: ${levelDec}`)
+	log.debug('SetChannelLevel', { type, channelId: chNumber, level: levelDec }, command)
 	return command
 }
 
@@ -113,6 +84,10 @@ export function incDecLevelCallback(action, type) {
 			incdecSelector,
 		]),
 	]
-	log(`Adjust level -- type: ${getChannelTypeName(type)}, channel: ${chNumber + 1}, operation: ${action.options.incdec}`)
+	log.debug(
+		'AdjustChannelLevel',
+		{ type, channelId: chNumber, operation: action.options.incdec, selector: incdecSelector },
+		command,
+	)
 	return command
 }

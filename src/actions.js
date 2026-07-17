@@ -9,9 +9,11 @@ import { requestSendInfo, incDecSendLevelCallback, setInputToZoneMute } from './
 import { setPlaybackTrack } from './formatMIDI/playback.js'
 import { getContext } from './context.js'
 import { FeedbackId } from './feedbacks.js'
+import { createLogger } from './utility/log.js'
 
 const PRESET_COUNT = 500
 const PLAYBACK_COUNT = 127
+const log = createLogger('Actions')
 
 export const ActionId = {
 	MuteInput: 'mute_input',
@@ -157,7 +159,7 @@ function playbackChannelOptions(name) {
 	]
 }
 
-export function getActions(numberOfInputs, numberOfZones) {
+export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups) {
 	const { companion, state, tcpClient } = getContext()
 	let actions = {}
 
@@ -170,16 +172,11 @@ export function getActions(numberOfInputs, numberOfZones) {
 			let inputNumber = parseInt(action.options.mute_number)
 			let mute = action.options.mute
 
-			console.log('Send mute command -- Input: ', action.options.mute_number, action.options.mute)
+			log.debug(ActionId.MuteInput, { inputId: inputNumber, mute })
 			let buffers = [Buffer.from([0x90, inputNumber, action.options.mute ? 0x7f : 0x3f, 0x90, inputNumber, 0])]
 			tcpClient.queue(buffers)
 
-			// buffers = requestMuteInfo(ChannelType.Input, action.options.mute_number)
-			// console.log('Request mute info -- Input: ', buffers, action.options.mute_number)
-			// tcpClient.queue(buffers)
-
 			state.setChannel(ChannelType.Input, inputNumber, undefined, mute)
-			console.log('checking feedback inputMute')
 			companion.checkFeedbacks(FeedbackId.InputMute)
 		},
 	}
@@ -191,32 +188,25 @@ export function getActions(numberOfInputs, numberOfZones) {
 			let zoneNumber = parseInt(action.options.mute_number)
 			let mute = action.options.mute
 
-			console.log('Send mute command -- Input: ', action.options.mute_number, action.options.mute)
+			log.debug(ActionId.MuteZone, { zoneId: zoneNumber, mute })
 			let buffers = [Buffer.from([0x91, zoneNumber, action.options.mute ? 0x7f : 0x3f, 0x91, zoneNumber, 0])]
 			tcpClient.queue(buffers)
 
-			// buffers = requestMuteInfo(ChannelType.Zone, action.options.mute_number)
-			// console.log('Request mute info -- Zone: ', buffers, action.options.mute_number)
-			// tcpClient.queue(buffers)
-
 			state.setChannel(ChannelType.Zone, zoneNumber, undefined, mute)
-			console.log('checking feedback zoneMute')
 			companion.checkFeedbacks(FeedbackId.ZoneMute)
 		},
 	}
 
 	actions[ActionId.MuteControlGroup] = {
 		name: 'Mute Control Group',
-		options: muteOptions('Control Group', 32, -1),
+		options: muteOptions('Control Group', numberOfControlGroups, -1),
 		callback: async (action) => {
 			let cgNumber = parseInt(action.options.mute_number)
 			let mute = action.options.mute
-			let buffers = [Buffer.from([0x92, cgNumber, action.options.mute ? 0x7f : 0x3f, 0x91, cgNumber, 0])]
-			tcpClient.queue(buffers)
 
-			// buffers = requestMuteInfo(ChannelType.ControlGroup, action.options.mute_number)
-			// console.log('Request mute info -- Control Group: ', buffers, action.options.mute_number)
-			// tcpClient.queue(buffers)
+			log.debug(ActionId.MuteControlGroup, { cgId: cgNumber, mute })
+			let buffers = [Buffer.from([0x92, cgNumber, action.options.mute ? 0x7f : 0x3f, 0x92, cgNumber, 0])]
+			tcpClient.queue(buffers)
 
 			state.setChannel(ChannelType.ControlGroup, cgNumber, undefined, mute)
 			companion.checkFeedbacks(FeedbackId.ControlGroupMute)
@@ -229,13 +219,14 @@ export function getActions(numberOfInputs, numberOfZones) {
 		callback: (action) => {
 			let inputNumber = parseInt(action.options.mute_number)
 			let zoneNumber = parseInt(action.options.number)
+
+			log.debug(ActionId.MuteInputToZone, { inputId: inputNumber, zoneId: zoneNumber, infoType: SendInfoType.MUTE })
 			tcpClient.queue(setInputToZoneMute(inputNumber, zoneNumber, action.options.mute))
 
 			// manually update internal state
 			state.setSend(ChannelType.Input, inputNumber, zoneNumber, undefined, action.options.mute)
 			companion.checkFeedbacks(FeedbackId.InputToZoneMute)
 
-			console.log(inputNumber, zoneNumber, SendInfoType.MUTE)
 			setTimeout(() => {
 				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.MUTE, inputNumber, zoneNumber))
 			}, 200)
@@ -248,7 +239,7 @@ export function getActions(numberOfInputs, numberOfZones) {
 		name: 'Set Level of Input',
 		options: setLevelOptions('Input', numberOfInputs, -1),
 		callback: (action) => {
-			console.log("Sending level set request, " + action.options.setlvl_ch_number + Date.now())
+			log.debug(ActionId.SetInputLevel, { inputId: action.options.setlvl_ch_number, level: action.options.level })
 			tcpClient.queue(setLevelCallback(action, ChannelType.Input))
 			setTimeout(() => {
 				tcpClient.queue(requestLevelInfo(ChannelType.Input, action.options.setlvl_ch_number))
@@ -287,6 +278,7 @@ export function getActions(numberOfInputs, numberOfZones) {
 			},
 		],
 		callback: (action) => {
+			log.debug(ActionId.SetZoneLevel, { zoneId: action.options.setlvl_ch_number, level: action.options.level })
 			tcpClient.queue(setLevelCallback(action, ChannelType.Zone))
 			setTimeout(() => {
 				tcpClient.queue(requestLevelInfo(ChannelType.Zone, action.options.setlvl_ch_number))
@@ -307,8 +299,9 @@ export function getActions(numberOfInputs, numberOfZones) {
 
 	actions[ActionId.SetControlGroupLevel] = {
 		name: 'Set Level of Control Group',
-		options: setLevelOptions('Control Group', 32, -1),
+		options: setLevelOptions('Control Group', numberOfControlGroups, -1),
 		callback: (action) => {
+			log.debug(ActionId.SetControlGroupLevel, { controlGroupId: action.options.setlvl_ch_number, level: action.options.level })
 			tcpClient.queue(setLevelCallback(action, ChannelType.ControlGroup))
 			setTimeout(() => {
 				tcpClient.queue(requestLevelInfo(ChannelType.ControlGroup, action.options.setlvl_ch_number))
@@ -318,7 +311,7 @@ export function getActions(numberOfInputs, numberOfZones) {
 
 	actions[ActionId.AdjustControlGroupLevel] = {
 		name: 'Increment/Decrement Level of Control Group',
-		options: incDecOptions('Control Group', 32, -1),
+		options: incDecOptions('Control Group', numberOfControlGroups, -1),
 		callback: (action) => {
 			tcpClient.queue(incDecLevelCallback(action, ChannelType.ControlGroup))
 			setTimeout(() => {
@@ -386,8 +379,6 @@ export function getActions(numberOfInputs, numberOfZones) {
 		callback: (action) => {
 			let trackNumber = parseInt(action.options.number)
 			let playbackChannel = parseInt(action.options.playbackChannel)
-
-			// console.log(`action playback_track: Got Callback with parameters trackNumber: ${action.options.number} and playbackChannel ${action.options.playbackChannel}.`)
 
 			tcpClient.queue(setPlaybackTrack(trackNumber, playbackChannel))
 		},

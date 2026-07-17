@@ -1,5 +1,8 @@
 import { InstanceBase } from '@companion-module/base'
 import { ChannelType, dbu_Values } from './constants.js'
+import { createLogger } from './log.js'
+
+const log = createLogger('Helpers')
 
 /**
  * Generates a Dropdown Choices Array with labelled incrementing values.
@@ -87,12 +90,11 @@ export function getVarNameCGLevel(cgNum) {
  * @param enumType enum to check wether value is value of
  */
 export function checkIfValueOfEnum(value, enumType) {
-	if (Object.values(enumType).includes(value)) {
-		return true
-	} else {
-		console.error(`checkIfValueOfEnum: value '${value}' was found not to be of enum type '${enumType}'`)
-		return false
-	}
+	const allowedValues = Object.values(enumType)
+	if (allowedValues.includes(value)) return true
+
+	log.warn('InvalidEnumValue', { value, allowedValues: allowedValues.join(',') })
+	return false
 }
 
 /**

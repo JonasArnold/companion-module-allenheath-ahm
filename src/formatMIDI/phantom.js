@@ -1,8 +1,16 @@
+import { createLogger } from '../utility/log.js'
+
+const log = createLogger('FormatMIDI')
+
 /**
  * Creates MIDI string to request if phantom (+48V) is enabled on an input channel
  * @param {Number} channelId - ID of the input channel (0-indexed)
  * @returns {Buffer} Hex MIDI buffer ready to send
  */
 export function requestPhantomInfo(channelId) {
-	return [Buffer.from([0xf0, 0x00, 0x00, 0x1a, 0x50, 0x12, 0x01, 0x00, 0x00, 0x01, 0x0b, 0x1b, channelId, 0xf7])]
+	const command = [
+		Buffer.from([0xf0, 0x00, 0x00, 0x1a, 0x50, 0x12, 0x01, 0x00, 0x00, 0x01, 0x0b, 0x1b, channelId, 0xf7]),
+	]
+	log.debug('RequestPhantomPower', { channelId }, command)
+	return command
 }

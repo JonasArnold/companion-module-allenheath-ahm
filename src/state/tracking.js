@@ -1,6 +1,8 @@
 import { getChannelTypeName, parseIDsToArray } from '../utility/helpers.js'
+import { createLogger } from '../utility/log.js'
 
 const MANUAL_ID = 'MANUAL'
+const log = createLogger('Tracking')
 
 /**
  * Manages the values and subscriptions of all tracked channels and sends.
@@ -150,8 +152,8 @@ export function createTracking(state) {
 	}
 
 	/**
-	 * Remove one send feedback subscription. 
-	 * The send and the channel itself is only removed when no other feedback, 
+	 * Remove one send feedback subscription.
+	 * The send and the channel itself is only removed when no other feedback,
 	 * manual subscription still needs it.
 	 * @param {String} feedbackId - Unique Companion feedback ID
 	 */
@@ -163,7 +165,7 @@ export function createTracking(state) {
 					// feedbackId not found in this send, continue searching
 					if (!send.subscriptions.delete(feedbackId)) continue
 					// delete the send when no other feedback subscription exists
-					if (send.subscriptions.size === 0) channel.sends.delete(idTo) 
+					if (send.subscriptions.size === 0) channel.sends.delete(idTo)
 					// finally check if the source channel itself can be pruned
 					pruneChannel(channels, idFrom, channel)
 					return // found the feedbackId, stop searching
@@ -224,7 +226,7 @@ export function createTracking(state) {
 	}
 
 	/**
-	 * Replace all manual subscriptions for one channel type. 
+	 * Replace all manual subscriptions for one channel type.
 	 * Feedback subscriptions remain untouched.
 	 * @param {ChannelType} type - ChannelType
 	 * @param {String|Number[]} channels - Comma-separated or array-based channel IDs (1-indexed)
@@ -242,7 +244,10 @@ export function createTracking(state) {
 
 		// parse channels into array and add them to tracked channels with MANUAL identifier
 		const ids = parseIDsToArray(channels).map((id) => id - 1)
-		console.log(`Manually tracking ${getChannelTypeName(type)} ${ids.map((id) => id + 1)}`)
+		log.debug('ManualTracking', {
+			channelType: getChannelTypeName(type),
+			channelIds: ids.map((id) => id + 1).join(','),
+		})
 		for (const id of ids) addChannel(type, id, MANUAL_ID, MANUAL_ID)
 	}
 
