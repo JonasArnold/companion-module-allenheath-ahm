@@ -301,7 +301,10 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		name: 'Set Level of Control Group',
 		options: setLevelOptions('Control Group', numberOfControlGroups, -1),
 		callback: (action) => {
-			log.debug(ActionId.SetControlGroupLevel, { controlGroupId: action.options.setlvl_ch_number, level: action.options.level })
+			log.debug(ActionId.SetControlGroupLevel, {
+				controlGroupId: action.options.setlvl_ch_number,
+				level: action.options.level,
+			})
 			tcpClient.queue(setLevelCallback(action, ChannelType.ControlGroup))
 			setTimeout(() => {
 				tcpClient.queue(requestLevelInfo(ChannelType.ControlGroup, action.options.setlvl_ch_number))
@@ -351,7 +354,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 						parseInt(action.options.incdec_ch_number),
 						parseInt(action.options.number),
 					),
-				)				
+				)
 			}, 200)
 		},
 	}

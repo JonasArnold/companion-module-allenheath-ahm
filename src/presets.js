@@ -9,7 +9,7 @@ function getTemplateValueArray(namePrefix, numValues, offset) {
 		let currentValue = i + offset
 		array.push({
 			name: `${namePrefix} ${currentValue}`,
-			value: currentValue
+			value: currentValue,
 		})
 	}
 
@@ -28,7 +28,7 @@ function getSendsDefinitionArray(inputPrefix, zonePrefix, numInputs, numZones, o
 			templateVariableName: 'input',
 			templateValues: getTemplateValueArray('Mute Input', numInputs, offset),
 			commonVariableValues: {
-				zone: z + offset
+				zone: z + offset,
 			},
 		})
 	}
@@ -57,7 +57,8 @@ export function getPresets(self) {
 						actionId: ActionId.MuteInput,
 						options: {
 							mute_number: {
-								isExpression: true, value: `$(local:input) - 1`
+								isExpression: true,
+								value: `$(local:input) - 1`,
 							},
 							mute: true,
 						},
@@ -71,7 +72,8 @@ export function getPresets(self) {
 						actionId: ActionId.MuteInput,
 						options: {
 							mute_number: {
-								isExpression: true, value: `$(local:input) - 1`
+								isExpression: true,
+								value: `$(local:input) - 1`,
 							},
 							mute: false,
 						},
@@ -85,7 +87,8 @@ export function getPresets(self) {
 				feedbackId: FeedbackId.InputMute,
 				options: {
 					input: {
-						isExpression: true, value: `$(local:input) - 1`
+						isExpression: true,
+						value: `$(local:input) - 1`,
 					},
 				},
 				style: {
@@ -98,9 +101,9 @@ export function getPresets(self) {
 			{
 				variableType: 'simple',
 				variableName: 'input',
-				startupValue: 1
-			}
-		]
+				startupValue: 1,
+			},
+		],
 	}
 
 	// Mute Zones
@@ -121,7 +124,8 @@ export function getPresets(self) {
 						actionId: ActionId.MuteZone,
 						options: {
 							mute_number: {
-								isExpression: true, value: `$(local:zone) - 1`
+								isExpression: true,
+								value: `$(local:zone) - 1`,
 							},
 							mute: true,
 						},
@@ -135,7 +139,8 @@ export function getPresets(self) {
 						actionId: ActionId.MuteZone,
 						options: {
 							mute_number: {
-								isExpression: true, value: `$(local:zone) - 1`
+								isExpression: true,
+								value: `$(local:zone) - 1`,
 							},
 							mute: false,
 						},
@@ -149,7 +154,8 @@ export function getPresets(self) {
 				feedbackId: FeedbackId.ZoneMute,
 				options: {
 					zone: {
-						isExpression: true, value: `$(local:zone) - 1`
+						isExpression: true,
+						value: `$(local:zone) - 1`,
 					},
 				},
 				style: {
@@ -162,9 +168,9 @@ export function getPresets(self) {
 			{
 				variableType: 'simple',
 				variableName: 'zone',
-				startupValue: 1
-			}
-		]
+				startupValue: 1,
+			},
+		],
 	}
 
 	// Mute Control Groups
@@ -185,7 +191,8 @@ export function getPresets(self) {
 						actionId: ActionId.MuteControlGroup,
 						options: {
 							mute_number: {
-								isExpression: true, value: `$(local:cg) - 1`
+								isExpression: true,
+								value: `$(local:cg) - 1`,
 							},
 							mute: true,
 						},
@@ -199,7 +206,8 @@ export function getPresets(self) {
 						actionId: ActionId.MuteControlGroup,
 						options: {
 							mute_number: {
-								isExpression: true, value: `$(local:cg) - 1`
+								isExpression: true,
+								value: `$(local:cg) - 1`,
 							},
 							mute: false,
 						},
@@ -213,7 +221,8 @@ export function getPresets(self) {
 				feedbackId: FeedbackId.ControlGroupMute,
 				options: {
 					cg: {
-						isExpression: true, value: `$(local:cg) - 1`
+						isExpression: true,
+						value: `$(local:cg) - 1`,
 					},
 				},
 				style: {
@@ -226,13 +235,13 @@ export function getPresets(self) {
 			{
 				variableType: 'simple',
 				variableName: 'cg',
-				startupValue: 1
-			}
-		]
+				startupValue: 1,
+			},
+		],
 	}
 
 	// Mute input to Zone
-	presets[`muteInputToZone`] ={
+	presets[`muteInputToZone`] = {
 		type: 'simple',
 		name: `Mute Input X to Zone Y`,
 		options: {},
@@ -249,10 +258,12 @@ export function getPresets(self) {
 						actionId: ActionId.MuteInputToZone,
 						options: {
 							mute_number: {
-								isExpression: true, value: `$(local:input) - 1`
+								isExpression: true,
+								value: `$(local:input) - 1`,
 							},
 							number: {
-								isExpression: true, value: `$(local:zone) - 1`
+								isExpression: true,
+								value: `$(local:zone) - 1`,
 							},
 							mute: true,
 						},
@@ -266,10 +277,12 @@ export function getPresets(self) {
 						actionId: ActionId.MuteInputToZone,
 						options: {
 							mute_number: {
-								isExpression: true, value: `$(local:input) - 1`
+								isExpression: true,
+								value: `$(local:input) - 1`,
 							},
 							number: {
-								isExpression: true, value: `$(local:zone) - 1`
+								isExpression: true,
+								value: `$(local:zone) - 1`,
 							},
 							mute: false,
 						},
@@ -283,10 +296,12 @@ export function getPresets(self) {
 				feedbackId: FeedbackId.InputToZoneMute,
 				options: {
 					input: {
-						isExpression: true, value: `$(local:input) - 1`
+						isExpression: true,
+						value: `$(local:input) - 1`,
 					},
 					zone: {
-						isExpression: true, value: `$(local:zone) - 1`
+						isExpression: true,
+						value: `$(local:zone) - 1`,
 					},
 				},
 				style: {
@@ -299,14 +314,14 @@ export function getPresets(self) {
 			{
 				variableType: 'simple',
 				variableName: 'input',
-				startupValue: 1
+				startupValue: 1,
 			},
 			{
 				variableType: 'simple',
 				variableName: 'zone',
-				startupValue: 1
-			}
-		]
+				startupValue: 1,
+			},
+		],
 	}
 
 	const structure = [
@@ -320,7 +335,7 @@ export function getPresets(self) {
 					type: 'template',
 					presetId: 'muteInput',
 					templateVariableName: 'input',
-					templateValues: getTemplateValueArray('Mute Input', self.numberOfInputs, 1)
+					templateValues: getTemplateValueArray('Mute Input', self.numberOfInputs, 1),
 				},
 				{
 					id: 'zoneMutes',
@@ -328,7 +343,7 @@ export function getPresets(self) {
 					type: 'template',
 					presetId: 'muteZone',
 					templateVariableName: 'zone',
-					templateValues: getTemplateValueArray('Mute Zone', self.numberOfZones, 1)
+					templateValues: getTemplateValueArray('Mute Zone', self.numberOfZones, 1),
 				},
 				{
 					id: 'cgMutes',
@@ -336,8 +351,8 @@ export function getPresets(self) {
 					type: 'template',
 					presetId: 'muteCG',
 					templateVariableName: 'cg',
-					templateValues: getTemplateValueArray('Mute CG', self.numberOfControlGroups, 1)
-				}
+					templateValues: getTemplateValueArray('Mute CG', self.numberOfControlGroups, 1),
+				},
 			],
 		},
 		{
