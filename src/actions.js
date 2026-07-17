@@ -169,30 +169,30 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		name: 'Mute Input',
 		options: muteOptions('Input', numberOfInputs, -1),
 		callback: async (action) => {
-			let inputNumber = parseInt(action.options.mute_number)
+			let inputId = parseInt(action.options.mute_number)
 			let mute = action.options.mute
 
-			log.debug(ActionId.MuteInput, { inputId: inputNumber, mute })
-			let buffers = [Buffer.from([0x90, inputNumber, action.options.mute ? 0x7f : 0x3f, 0x90, inputNumber, 0])]
+			log.debug(ActionId.MuteInput, { inputId: inputId, mute })
+			let buffers = [Buffer.from([0x90, inputId, action.options.mute ? 0x7f : 0x3f, 0x90, inputId, 0])]
 			tcpClient.queue(buffers)
 
-			state.setChannel(ChannelType.Input, inputNumber, undefined, mute)
+			state.setChannel(ChannelType.Input, inputId, undefined, mute)
 			companion.checkFeedbacks(FeedbackId.InputMute)
 		},
 	}
 
 	actions[ActionId.MuteZone] = {
 		name: 'Mute Zone',
-		options: muteOptions('Zone', numberOfInputs, -1),
+		options: muteOptions('Zone', numberOfZones, -1),
 		callback: (action) => {
-			let zoneNumber = parseInt(action.options.mute_number)
+			let zoneId = parseInt(action.options.mute_number)
 			let mute = action.options.mute
 
-			log.debug(ActionId.MuteZone, { zoneId: zoneNumber, mute })
-			let buffers = [Buffer.from([0x91, zoneNumber, action.options.mute ? 0x7f : 0x3f, 0x91, zoneNumber, 0])]
+			log.debug(ActionId.MuteZone, { zoneId: zoneId, mute })
+			let buffers = [Buffer.from([0x91, zoneId, action.options.mute ? 0x7f : 0x3f, 0x91, zoneId, 0])]
 			tcpClient.queue(buffers)
 
-			state.setChannel(ChannelType.Zone, zoneNumber, undefined, mute)
+			state.setChannel(ChannelType.Zone, zoneId, undefined, mute)
 			companion.checkFeedbacks(FeedbackId.ZoneMute)
 		},
 	}
@@ -201,14 +201,14 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		name: 'Mute Control Group',
 		options: muteOptions('Control Group', numberOfControlGroups, -1),
 		callback: async (action) => {
-			let cgNumber = parseInt(action.options.mute_number)
+			let cgId = parseInt(action.options.mute_number)
 			let mute = action.options.mute
 
-			log.debug(ActionId.MuteControlGroup, { cgId: cgNumber, mute })
-			let buffers = [Buffer.from([0x92, cgNumber, action.options.mute ? 0x7f : 0x3f, 0x92, cgNumber, 0])]
+			log.debug(ActionId.MuteControlGroup, { cgId: cgId, mute })
+			let buffers = [Buffer.from([0x92, cgId, action.options.mute ? 0x7f : 0x3f, 0x92, cgId, 0])]
 			tcpClient.queue(buffers)
 
-			state.setChannel(ChannelType.ControlGroup, cgNumber, undefined, mute)
+			state.setChannel(ChannelType.ControlGroup, cgId, undefined, mute)
 			companion.checkFeedbacks(FeedbackId.ControlGroupMute)
 		},
 	}
@@ -217,18 +217,18 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		name: 'Mute Input to Zone',
 		options: muteOptions('Input', numberOfInputs, -1).concat(listOptions('Zone', numberOfZones, -1)),
 		callback: (action) => {
-			let inputNumber = parseInt(action.options.mute_number)
-			let zoneNumber = parseInt(action.options.number)
+			let inputId = parseInt(action.options.mute_number)
+			let zoneId = parseInt(action.options.number)
 
-			log.debug(ActionId.MuteInputToZone, { inputId: inputNumber, zoneId: zoneNumber, infoType: SendInfoType.MUTE })
-			tcpClient.queue(setInputToZoneMute(inputNumber, zoneNumber, action.options.mute))
+			log.debug(ActionId.MuteInputToZone, { inputId: inputId, zoneId: zoneId, infoType: SendInfoType.MUTE })
+			tcpClient.queue(setInputToZoneMute(inputId, zoneId, action.options.mute))
 
 			// manually update internal state
-			state.setSend(ChannelType.Input, inputNumber, zoneNumber, undefined, action.options.mute)
+			state.setSend(ChannelType.Input, inputId, zoneId, undefined, action.options.mute)
 			companion.checkFeedbacks(FeedbackId.InputToZoneMute)
 
 			setTimeout(() => {
-				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.MUTE, inputNumber, zoneNumber))
+				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.MUTE, inputId, zoneId))
 			}, 200)
 		},
 	}
@@ -362,10 +362,10 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		name: 'Recall Preset',
 		options: listOptions('Preset', PRESET_COUNT, -1),
 		callback: (action) => {
-			// note: presetNumber is one less than the actual preset number, since the action list starts at 0
-			let presetNumber = parseInt(action.options.number)
-			let bank = Math.floor(presetNumber / 128)
-			let presetOffset = presetNumber % 128
+			// note: presetId is 0-based
+			let presetId = parseInt(action.options.number)
+			let bank = Math.floor(presetId / 128)
+			let presetOffset = presetId % 128
 			let buffers = [Buffer.from([0xb0, 0x00, bank, 0xc0, presetOffset])]
 			tcpClient.queue(buffers)
 		},
@@ -377,10 +377,11 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		name: 'Playback Track',
 		options: listOptions('Playback Track', PLAYBACK_COUNT, -1).concat(playbackChannelOptions('Playback Channel')),
 		callback: (action) => {
-			let trackNumber = parseInt(action.options.number)
+			// note: trackId is 0-based
+			let trackId = parseInt(action.options.number)
 			let playbackChannel = parseInt(action.options.playbackChannel)
 
-			tcpClient.queue(setPlaybackTrack(trackNumber, playbackChannel))
+			tcpClient.queue(setPlaybackTrack(trackId, playbackChannel))
 		},
 	}
 
