@@ -16,26 +16,6 @@ function getTemplateValueArray(namePrefix, numValues, offset) {
 	return array
 }
 
-function getSendsDefinitionArray(inputPrefix, zonePrefix, numInputs, numZones, offset) {
-	let definitions = []
-
-	for (let z = 0; z < numZones; z++) {
-		definitions.push({
-			id: `muteSendToZone${z + offset}`,
-			name: `Mute Input to Zone ${z + offset}`,
-			type: 'template',
-			presetId: 'muteInputToZone',
-			templateVariableName: 'input',
-			templateValues: getTemplateValueArray('Mute Input', numInputs, offset),
-			commonVariableValues: {
-				zone: z + offset,
-			},
-		})
-	}
-
-	return definitions
-}
-
 export function getPresets(self) {
 	let presets = []
 
@@ -324,43 +304,72 @@ export function getPresets(self) {
 		],
 	}
 
-	const structure = [
-		{
-			id: 'mute',
-			name: 'Mute Input, Zone, or Control Group',
+	const structure = []
+
+	structure.push({
+		id: 'inputMutes',
+		name: 'Input Mutes',
+		definitions: [
+			{
+				id: 'inputMutes',
+				// name: 'Input Mutes',
+				type: 'template',
+				presetId: 'muteInput',
+				templateVariableName: 'input',
+				templateValues: getTemplateValueArray('Mute Input', self.numberOfInputs, 1),
+			},
+		],
+	})
+
+	structure.push({
+		id: 'zoneMutes',
+		name: 'Zone Mutes',
+		definitions: [
+			{
+				id: 'zoneMutes',
+				// name: 'Zone Mutes',
+				type: 'template',
+				presetId: 'muteZone',
+				templateVariableName: 'zone',
+				templateValues: getTemplateValueArray('Mute Zone', self.numberOfZones, 1),
+			},
+		],
+	})
+
+	structure.push({
+		id: 'cgMutes',
+		name: 'Control Group Mutes',
+		definitions: [
+			{
+				id: 'cgMutes',
+				// name: 'Control Group Mutes',
+				type: 'template',
+				presetId: 'muteCG',
+				templateVariableName: 'cg',
+				templateValues: getTemplateValueArray('Mute CG', self.numberOfControlGroups, 1),
+			},
+		],
+	})
+
+	for (let z = 0; z < self.numberOfZones; z++) {
+		structure.push({
+			id: `muteSendToZone${z + 1}`,
+			name: `Mute Input to Zone ${z + 1}`,
 			definitions: [
 				{
-					id: 'inputMutes',
-					name: 'Input Mutes',
+					id: `muteSendToZone${z + 1}`,
+					// name: `Mute Input to Zone ${z + 1}`,
 					type: 'template',
-					presetId: 'muteInput',
+					presetId: 'muteInputToZone',
 					templateVariableName: 'input',
 					templateValues: getTemplateValueArray('Mute Input', self.numberOfInputs, 1),
-				},
-				{
-					id: 'zoneMutes',
-					name: 'Zone Mutes',
-					type: 'template',
-					presetId: 'muteZone',
-					templateVariableName: 'zone',
-					templateValues: getTemplateValueArray('Mute Zone', self.numberOfZones, 1),
-				},
-				{
-					id: 'cgMutes',
-					name: 'Control Group Mutes',
-					type: 'template',
-					presetId: 'muteCG',
-					templateVariableName: 'cg',
-					templateValues: getTemplateValueArray('Mute CG', self.numberOfControlGroups, 1),
+					commonVariableValues: {
+						zone: z + 1,
+					},
 				},
 			],
-		},
-		{
-			id: 'muteSends',
-			name: 'Mute Send to Zone',
-			definitions: getSendsDefinitionArray('Mute Input', 'to Zone', self.numberOfInputs, self.numberOfZones, 1),
-		},
-	]
+		})
+	}
 
 	// return presets in API 2.0 structure
 	self.setPresetDefinitions(structure, presets)
