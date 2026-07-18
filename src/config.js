@@ -1,7 +1,7 @@
 import { Regex } from '@companion-module/base'
 
 /**
- * Module config in seperate file
+ * Module config in separate file
  */
 export const configFields = [
 	{
@@ -51,21 +51,21 @@ export const configFields = [
 		type: 'textinput',
 		id: 'manTrackInputs',
 		label: 'Inputs',
-		description: 'Seperate inputs by commas',
+		description: 'Separate inputs by commas',
 		width: 12,
 	},
 	{
 		type: 'textinput',
 		id: 'manTrackZones',
 		label: 'Zones',
-		description: 'Seperate zones by commas',
+		description: 'Separate zones by commas',
 		width: 12,
 	},
 	{
 		type: 'textinput',
 		id: 'manTrackCGs',
 		label: 'Control Groups',
-		description: 'Seperate control groups by commas',
+		description: 'Separate control groups by commas',
 		width: 12,
 	},
 ]
