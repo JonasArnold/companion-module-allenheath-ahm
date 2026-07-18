@@ -2,15 +2,21 @@ import { Colors } from './utility/constants.js'
 import { FeedbackId } from './feedbacks.js'
 import { ActionId } from './actions.js'
 
-function getTemplateValueArray(namePrefix, numValues, offset) {
+function getSimplePresetsArray(prefix, numPresets) {
 	let array = []
 
-	for (let i = 0; i < numValues; i++) {
-		let currentValue = i + offset
-		array.push({
-			name: `${namePrefix} ${currentValue}`,
-			value: currentValue,
-		})
+	for (let i = 1; i < numPresets + 1; i++) {
+		array.push(prefix + i)
+	}
+
+	return array
+}
+
+function getSimplePresetsArrayWithSends(prefix, numPresets, zone) {
+	let array = []
+
+	for (let i = 1; i < numPresets + 1; i++) {
+		array.push(prefix + i + '-' + zone)
 	}
 
 	return array
@@ -20,288 +26,220 @@ export function getPresets(self) {
 	let presets = []
 
 	// Mute Inputs
-	presets[`muteInput`] = {
-		type: 'simple',
-		name: `Mute Input X`,
-		options: {},
-		style: {
-			text: `Mute Input $(local:input)`,
-			size: '12',
-			color: Colors.White,
-			bgcolor: Colors.Black,
-		},
-		steps: [
-			{
-				down: [
-					{
-						actionId: ActionId.MuteInput,
-						options: {
-							mute_number: {
-								isExpression: true,
-								value: `$(local:input) - 1`,
-							},
-							mute: true,
-						},
-					},
-				],
-				up: [],
+	for (let i = 0; i < self.numberOfInputs; i++) {
+		presets[`muteInput${i + 1}`] = {
+			type: 'simple',
+			name: `Mute Input ${i + 1}`,
+			options: {},
+			style: {
+				text: `Mute Input ${i + 1}`,
+				size: '12',
+				color: Colors.White,
+				bgcolor: Colors.Black,
 			},
-			{
-				down: [
-					{
-						actionId: ActionId.MuteInput,
-						options: {
-							mute_number: {
-								isExpression: true,
-								value: `$(local:input) - 1`,
+			steps: [
+				{
+					down: [
+						{
+							actionId: ActionId.MuteInput,
+							options: {
+								mute_number: i,
+								mute: true,
 							},
-							mute: false,
 						},
+					],
+					up: [],
+				},
+				{
+					down: [
+						{
+							actionId: ActionId.MuteInput,
+							options: {
+								mute_number: i,
+								mute: false,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: FeedbackId.InputMute,
+					options: {
+						input: i,
 					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [
-			{
-				feedbackId: FeedbackId.InputMute,
-				options: {
-					input: {
-						isExpression: true,
-						value: `$(local:input) - 1`,
+					style: {
+						color: Colors.White,
+						bgcolor: Colors.Red,
 					},
 				},
-				style: {
-					color: Colors.White,
-					bgcolor: Colors.Red,
-				},
-			},
-		],
-		localVariables: [
-			{
-				variableType: 'simple',
-				variableName: 'input',
-				startupValue: 1,
-			},
-		],
+			],
+		}
 	}
 
 	// Mute Zones
-	presets[`muteZone`] = {
-		type: 'simple',
-		name: `Mute Zone X`,
-		options: {},
-		style: {
-			text: `Mute Zone $(local:zone)`,
-			size: '14',
-			color: Colors.White,
-			bgcolor: Colors.Black,
-		},
-		steps: [
-			{
-				down: [
-					{
-						actionId: ActionId.MuteZone,
-						options: {
-							mute_number: {
-								isExpression: true,
-								value: `$(local:zone) - 1`,
-							},
-							mute: true,
-						},
-					},
-				],
-				up: [],
+	for (let i = 0; i < self.numberOfZones; i++) {
+		presets[`muteZone${i + 1}`] = {
+			type: 'simple',
+			name: `Mute Zone ${i + 1}`,
+			options: {},
+			style: {
+				text: `Mute Zone ${i + 1}`,
+				size: '14',
+				color: Colors.White,
+				bgcolor: Colors.Black,
 			},
-			{
-				down: [
-					{
-						actionId: ActionId.MuteZone,
-						options: {
-							mute_number: {
-								isExpression: true,
-								value: `$(local:zone) - 1`,
+			steps: [
+				{
+					down: [
+						{
+							actionId: ActionId.MuteZone,
+							options: {
+								mute_number: i,
+								mute: true,
 							},
-							mute: false,
 						},
+					],
+					up: [],
+				},
+				{
+					down: [
+						{
+							actionId: ActionId.MuteZone,
+							options: {
+								mute_number: i,
+								mute: false,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: FeedbackId.ZoneMute,
+					options: {
+						zone: i,
 					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [
-			{
-				feedbackId: FeedbackId.ZoneMute,
-				options: {
-					zone: {
-						isExpression: true,
-						value: `$(local:zone) - 1`,
+					style: {
+						color: Colors.White,
+						bgcolor: Colors.Red,
 					},
 				},
-				style: {
-					color: Colors.White,
-					bgcolor: Colors.Red,
-				},
-			},
-		],
-		localVariables: [
-			{
-				variableType: 'simple',
-				variableName: 'zone',
-				startupValue: 1,
-			},
-		],
+			],
+		}
 	}
 
 	// Mute Control Groups
-	presets[`muteCG`] = {
-		type: 'simple',
-		name: `Mute CG X`,
-		options: {},
-		style: {
-			text: `Mute Control Group $(local:cg)`,
-			size: '12',
-			color: Colors.White,
-			bgcolor: Colors.Black,
-		},
-		steps: [
-			{
-				down: [
-					{
-						actionId: ActionId.MuteControlGroup,
-						options: {
-							mute_number: {
-								isExpression: true,
-								value: `$(local:cg) - 1`,
-							},
-							mute: true,
-						},
-					},
-				],
-				up: [],
+	for (let i = 0; i < self.numberOfControlGroups; i++) {
+		presets[`muteCG${i + 1}`] = {
+			type: 'simple',
+			name: `Mute CG ${i + 1}`,
+			options: {},
+			style: {
+				text: `Mute Control Group ${i + 1}`,
+				size: '12',
+				color: Colors.White,
+				bgcolor: Colors.Black,
 			},
-			{
-				down: [
-					{
-						actionId: ActionId.MuteControlGroup,
-						options: {
-							mute_number: {
-								isExpression: true,
-								value: `$(local:cg) - 1`,
+			steps: [
+				{
+					down: [
+						{
+							actionId: ActionId.MuteControlGroup,
+							options: {
+								mute_number: i,
+								mute: true,
 							},
-							mute: false,
 						},
+					],
+					up: [],
+				},
+				{
+					down: [
+						{
+							actionId: ActionId.MuteControlGroup,
+							options: {
+								mute_number: i,
+								mute: false,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: FeedbackId.ControlGroupMute,
+					options: {
+						cg: i,
 					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [
-			{
-				feedbackId: FeedbackId.ControlGroupMute,
-				options: {
-					cg: {
-						isExpression: true,
-						value: `$(local:cg) - 1`,
+					style: {
+						color: Colors.White,
+						bgcolor: Colors.Red,
 					},
 				},
-				style: {
-					color: Colors.White,
-					bgcolor: Colors.Red,
-				},
-			},
-		],
-		localVariables: [
-			{
-				variableType: 'simple',
-				variableName: 'cg',
-				startupValue: 1,
-			},
-		],
+			],
+		}
 	}
 
 	// Mute input to Zone
-	presets[`muteInputToZone`] = {
-		type: 'simple',
-		name: `Mute Input X to Zone Y`,
-		options: {},
-		style: {
-			text: `Mute Input $(local:input) to Zone $(local:zone)`,
-			size: '10',
-			color: Colors.White,
-			bgcolor: Colors.Black,
-		},
-		steps: [
-			{
-				down: [
-					{
-						actionId: ActionId.MuteInputToZone,
-						options: {
-							mute_number: {
-								isExpression: true,
-								value: `$(local:input) - 1`,
-							},
-							number: {
-								isExpression: true,
-								value: `$(local:zone) - 1`,
-							},
-							mute: true,
-						},
-					},
-				],
-				up: [],
-			},
-			{
-				down: [
-					{
-						actionId: ActionId.MuteInputToZone,
-						options: {
-							mute_number: {
-								isExpression: true,
-								value: `$(local:input) - 1`,
-							},
-							number: {
-								isExpression: true,
-								value: `$(local:zone) - 1`,
-							},
-							mute: false,
-						},
-					},
-				],
-				up: [],
-			},
-		],
-		feedbacks: [
-			{
-				feedbackId: FeedbackId.InputToZoneMute,
-				options: {
-					input: {
-						isExpression: true,
-						value: `$(local:input) - 1`,
-					},
-					zone: {
-						isExpression: true,
-						value: `$(local:zone) - 1`,
-					},
-				},
+	for (let i = 0; i < self.numberOfInputs; i++) {
+		for (let z = 0; z < self.numberOfZones; z++) {
+			presets[`muteSend${i + 1}-${z + 1}`] = {
+				type: 'simple',
+				name: `Mute Input ${i + 1} to Zone ${z + 1}`,
+				options: {},
 				style: {
+					text: `Mute Input ${i + 1} to Zone ${z + 1}`,
+					size: '10',
 					color: Colors.White,
-					bgcolor: Colors.Red,
+					bgcolor: Colors.Black,
 				},
-			},
-		],
-		localVariables: [
-			{
-				variableType: 'simple',
-				variableName: 'input',
-				startupValue: 1,
-			},
-			{
-				variableType: 'simple',
-				variableName: 'zone',
-				startupValue: 1,
-			},
-		],
+				steps: [
+					{
+						down: [
+							{
+								actionId: ActionId.MuteInputToZone,
+								options: {
+									mute_number: i,
+									number: z,
+									mute: true,
+								},
+							},
+						],
+						up: [],
+					},
+					{
+						down: [
+							{
+								actionId: ActionId.MuteInputToZone,
+								options: {
+									mute_number: i,
+									number: z,
+									mute: false,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [
+					{
+						feedbackId: FeedbackId.InputToZoneMute,
+						options: {
+							input: i,
+							zone: z,
+						},
+						style: {
+							color: Colors.White,
+							bgcolor: Colors.Red,
+						},
+					},
+				],
+			}
+		}
 	}
 
 	const structure = []
@@ -313,10 +251,8 @@ export function getPresets(self) {
 			{
 				id: 'inputMutes',
 				// name: 'Input Mutes',
-				type: 'template',
-				presetId: 'muteInput',
-				templateVariableName: 'input',
-				templateValues: getTemplateValueArray('Mute Input', self.numberOfInputs, 1),
+				type: 'simple',
+				presets: getSimplePresetsArray('muteInput', self.numberOfInputs),
 			},
 		],
 	})
@@ -328,10 +264,8 @@ export function getPresets(self) {
 			{
 				id: 'zoneMutes',
 				// name: 'Zone Mutes',
-				type: 'template',
-				presetId: 'muteZone',
-				templateVariableName: 'zone',
-				templateValues: getTemplateValueArray('Mute Zone', self.numberOfZones, 1),
+				type: 'simple',
+				presets: getSimplePresetsArray('muteZone', self.numberOfZones),
 			},
 		],
 	})
@@ -343,29 +277,22 @@ export function getPresets(self) {
 			{
 				id: 'cgMutes',
 				// name: 'Control Group Mutes',
-				type: 'template',
-				presetId: 'muteCG',
-				templateVariableName: 'cg',
-				templateValues: getTemplateValueArray('Mute CG', self.numberOfControlGroups, 1),
+				type: 'simple',
+				presets: getSimplePresetsArray('muteCG', self.numberOfControlGroups),
 			},
 		],
 	})
 
-	for (let z = 0; z < self.numberOfZones; z++) {
+	for (let z = 0; z < self.numberOfZones + 1; z++) {
 		structure.push({
 			id: `muteSendToZone${z + 1}`,
-			name: `Mute Input to Zone ${z + 1}`,
+			name: `Mute Input to Zone ${z}`,
 			definitions: [
 				{
 					id: `muteSendToZone${z + 1}`,
 					// name: `Mute Input to Zone ${z + 1}`,
-					type: 'template',
-					presetId: 'muteInputToZone',
-					templateVariableName: 'input',
-					templateValues: getTemplateValueArray('Mute Input', self.numberOfInputs, 1),
-					commonVariableValues: {
-						zone: z + 1,
-					},
+					type: 'simple',
+					presets: getSimplePresetsArrayWithSends('muteSend', self.numberOfInputs, z),
 				},
 			],
 		})
