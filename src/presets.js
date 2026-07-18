@@ -283,16 +283,16 @@ export function getPresets(self) {
 		],
 	})
 
-	for (let z = 0; z < self.numberOfZones + 1; z++) {
+	for (let z = 0; z < self.numberOfZones; z++) {
 		structure.push({
 			id: `muteSendToZone${z + 1}`,
-			name: `Mute Input to Zone ${z}`,
+			name: `Mute Input to Zone ${z + 1}`,
 			definitions: [
 				{
 					id: `muteSendToZone${z + 1}`,
 					// name: `Mute Input to Zone ${z + 1}`,
 					type: 'simple',
-					presets: getSimplePresetsArrayWithSends('muteSend', self.numberOfInputs, z),
+					presets: getSimplePresetsArrayWithSends('muteSend', self.numberOfInputs, z + 1),
 				},
 			],
 		})
