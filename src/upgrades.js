@@ -88,36 +88,44 @@ export default [
 		}
 
 		const ActionsDropdownOptionsToOneBased = {
-			MuteInput: ['mute_number'],
-			SetInputLevel: ['input'],
-			AdjustInputLevel: ['input'],
-			MuteZone: ['mute_number'],
-			SetZoneLevel: ['zone'],
-			AdjustZoneLevel: ['zone'],
-			MuteControlGroup: ['mute_number'],
-			SetControlGroupLevel: ['cg'],
-			AdjustControlGroupLevel: ['cg'],
-			MuteInputToZone: ['mute_number', 'zone'],
-			AdjustInputToZoneSendLevel: ['input', 'zone'],
-			AdjustZoneToZoneSendLevel: ['zone', 'zone']
+			mute_input: ['mute_number'],
+			set_level_input: ['setlvl_ch_number'],
+			inc_dec_level_input: ['incdec_ch_number'],
+			mute_zone: ['mute_number'],
+			set_level_zone: ['setlvl_ch_number'],
+			inc_dec_level_zone: ['incdec_ch_number'],
+			mute_controlgroup: ['mute_number'],
+			set_level_controlgroup: ['setlvl_ch_number'],
+			inc_dec_level_controlgroup: ['incdec_ch_number'],
+			input_to_zone: ['mute_number', 'number'],
+			inc_dec_in_zn_send_level: ['incdec_ch_number', 'number'],
+			inc_dec_zn_zn_send_level: ['incdec_ch_number', 'number'],
+			preset_recall: ['number'],
 		}
 
-		function convertZeroBasedActionsDropdownOptionsToOneBased(actions) {
-			const optionIds = ActionsDropdownOptionsToOneBased[actions.feedbackId]
+		function convertZeroBasedActionsDropdownOptionsToOneBased(action) {
+			const optionIds = ActionsDropdownOptionsToOneBased[action.actionId]
 			if (!optionIds) return false
 
 			let updated = false
 			for (const optionId of optionIds) {
-				if (!Object.hasOwn(actions.options, optionId)) continue
+				if (!Object.hasOwn(action.options, optionId)) continue
 
-				const value = actions.options[optionId]
+				const option = action.options[optionId]
+				if (option?.isExpression) continue
+
+				const value = option?.isExpression === false ? option.value : option
 				const numberValue = Number(value)
 				if (!Number.isInteger(numberValue) || numberValue < 0) continue
 
 				console.info(
-					`Updating Action, Found ${actions.feedbackId} option ${optionId}=${numberValue}, converting to ${numberValue + 1}`,
+					`Updating Action, Found ${action.actionId} option ${optionId}=${numberValue}, converting to ${numberValue + 1}`,
 				)
-				actions.options[optionId] = numberValue + 1
+				if (option?.isExpression === false) {
+					option.value = numberValue + 1
+				} else {
+					action.options[optionId] = numberValue + 1
+				}
 				updated = true
 			}
 
@@ -145,7 +153,7 @@ export default [
 			changes.updatedConfig = config
 		}
 
-		// update feedbacks, changing from textbox input (one-based) to dropdown with zero-based values
+		// update actions, changing from dropdown input (0-indexed) to text input with one-based values
 		for (const action of props.actions) {
 			if (convertZeroBasedActionsDropdownOptionsToOneBased(action)) {
 				changes.updatedActions.push(action)
