@@ -101,6 +101,7 @@ export default [
 			inc_dec_in_zn_send_level: ['incdec_ch_number', 'number'],
 			inc_dec_zn_zn_send_level: ['incdec_ch_number', 'number'],
 			preset_recall: ['number'],
+			playback_track: ['number'],
 		}
 
 		function convertZeroBasedActionsDropdownOptionsToOneBased(action) {
