@@ -45,7 +45,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 				id: 'input',
 				label: 'Input',
 				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Input', numberOfInputs, -1),
+				choices: getChoicesArrayWithIncrementingNumbers('Input', numberOfInputs, 0),
 				minChoicesForSearch: 0,
 			},
 		],
@@ -55,13 +55,13 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 			state.addChannel(ChannelType.Input, inputId, feedback.id, FeedbackId.InputMute)
 
 			let muteState = state.getMute(ChannelType.Input, inputId)
-			debug(`(Callback) ${FeedbackId.InputMute}`, { input: inputId + 1, state: muteState, feedbackId: feedback.id })
+			debug(`(Callback) ${FeedbackId.InputMute}`, { input: inputId, state: muteState, feedbackId: feedback.id })
 
 			return muteState
 		},
 		unsubscribe: (feedback) => {
 			let inputId = parseInt(feedback.options.input)
-			debug(`(Unsubscribe) ${FeedbackId.InputMute}`, { input: inputId + 1, feedbackId: feedback.id })
+			debug(`(Unsubscribe) ${FeedbackId.InputMute}`, { input: inputId, feedbackId: feedback.id })
 
 			state.removeChannel(feedback.id)
 		},
@@ -77,7 +77,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 				id: 'input',
 				label: 'Input',
 				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Input', numberOfInputs, -1),
+				choices: getChoicesArrayWithIncrementingNumbers('Input', numberOfInputs, 0),
 				minChoicesForSearch: 0,
 			},
 		],
@@ -93,7 +93,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 
 			let levelDec = state.getLevel(ChannelType.Input, inputId)
 			debug(`(Callback) ${FeedbackId.InputLevel}`, {
-				input: inputId + 1,
+				input: inputId,
 				level: levelDec,
 				isNew,
 				feedbackId: feedback.id,
@@ -103,7 +103,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 		},
 		unsubscribe: (feedback) => {
 			let inputId = parseInt(feedback.options.input)
-			debug(`(Unsubscribe) ${FeedbackId.InputLevel}`, { input: inputId + 1, feedbackId: feedback.id })
+			debug(`(Unsubscribe) ${FeedbackId.InputLevel}`, { input: inputId, feedbackId: feedback.id })
 
 			state.removeChannel(feedback.id)
 		},
@@ -123,7 +123,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 				id: 'zone',
 				label: 'Zone',
 				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Zone', numberOfZones, -1),
+				choices: getChoicesArrayWithIncrementingNumbers('Zone', numberOfZones, 0),
 				minChoicesForSearch: 0,
 			},
 		],
@@ -133,13 +133,13 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 			state.addChannel(ChannelType.Zone, zoneId, feedback.id, FeedbackId.ZoneMute)
 
 			let muteState = state.getMute(ChannelType.Zone, zoneId)
-			debug(`(Callback) ${FeedbackId.ZoneMute}`, { zone: zoneId + 1, state: muteState, feedbackId: feedback.id })
+			debug(`(Callback) ${FeedbackId.ZoneMute}`, { zone: zoneId, state: muteState, feedbackId: feedback.id })
 
 			return muteState
 		},
 		unsubscribe: (feedback) => {
 			let zoneId = parseInt(feedback.options.zone)
-			debug(`(Unsubscribe) ${FeedbackId.ZoneMute}`, { zone: zoneId + 1, feedbackId: feedback.id })
+			debug(`(Unsubscribe) ${FeedbackId.ZoneMute}`, { zone: zoneId, feedbackId: feedback.id })
 
 			state.removeChannel(feedback.id)
 		},
@@ -155,7 +155,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 				id: 'zone',
 				label: 'Zone',
 				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Zone', numberOfZones, -1),
+				choices: getChoicesArrayWithIncrementingNumbers('Zone', numberOfZones, 0),
 				minChoicesForSearch: 0,
 			},
 		],
@@ -170,13 +170,13 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 			}
 
 			let levelDec = state.getLevel(ChannelType.Zone, zoneId)
-			debug(`(Callback) ${FeedbackId.ZoneLevel}`, { zone: zoneId + 1, level: levelDec, isNew, feedbackId: feedback.id })
+			debug(`(Callback) ${FeedbackId.ZoneLevel}`, { zone: zoneId, level: levelDec, isNew, feedbackId: feedback.id })
 
 			return getDbuValue(levelDec)
 		},
 		unsubscribe: (feedback) => {
 			let zoneId = parseInt(feedback.options.zone)
-			debug(`(Unsubscribe) ${FeedbackId.ZoneLevel}`, { zone: zoneId + 1, feedbackId: feedback.id })
+			debug(`(Unsubscribe) ${FeedbackId.ZoneLevel}`, { zone: zoneId, feedbackId: feedback.id })
 
 			state.removeChannel(feedback.id)
 		},
@@ -196,7 +196,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 				id: 'cg',
 				label: 'Control Group',
 				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Control Group', numberOfControlGroups, -1),
+				choices: getChoicesArrayWithIncrementingNumbers('Control Group', numberOfControlGroups, 0),
 				minChoicesForSearch: 0,
 			},
 		],
@@ -207,7 +207,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 
 			let muteState = state.getMute(ChannelType.ControlGroup, controlGroupId)
 			debug(`(Callback) ${FeedbackId.ControlGroupMute}`, {
-				controlGroup: controlGroupId + 1,
+				controlGroup: controlGroupId,
 				state: muteState,
 				feedbackId: feedback.id,
 			})
@@ -217,7 +217,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 		unsubscribe: (feedback) => {
 			let controlGroupId = parseInt(feedback.options.cg)
 			debug(`(Unsubscribe) ${FeedbackId.ControlGroupMute}`, {
-				controlGroup: controlGroupId + 1,
+				controlGroup: controlGroupId,
 				feedbackId: feedback.id,
 			})
 
@@ -235,7 +235,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 				id: 'cg',
 				label: 'Control Group',
 				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Control Group', numberOfControlGroups, -1),
+				choices: getChoicesArrayWithIncrementingNumbers('Control Group', numberOfControlGroups, 0),
 				minChoicesForSearch: 0,
 			},
 		],
@@ -256,7 +256,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 
 			let levelDec = state.getLevel(ChannelType.ControlGroup, controlGroupId)
 			debug(`(Callback) ${FeedbackId.ControlGroupLevel}`, {
-				controlGroup: controlGroupId + 1,
+				controlGroup: controlGroupId,
 				level: levelDec,
 				isNew,
 				feedbackId: feedback.id,
@@ -267,7 +267,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 		unsubscribe: (feedback) => {
 			let controlGroupId = parseInt(feedback.options.cg)
 			debug(`(Unsubscribe) ${FeedbackId.ControlGroupLevel}`, {
-				controlGroup: controlGroupId + 1,
+				controlGroup: controlGroupId,
 				feedbackId: feedback.id,
 			})
 
@@ -289,7 +289,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 				id: 'input',
 				label: 'Input',
 				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Input', numberOfInputs, -1),
+				choices: getChoicesArrayWithIncrementingNumbers('Input', numberOfInputs, 0),
 				minChoicesForSearch: 0,
 			},
 			{
@@ -297,7 +297,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 				id: 'zone',
 				label: 'Zone',
 				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Zone', numberOfZones, -1),
+				choices: getChoicesArrayWithIncrementingNumbers('Zone', numberOfZones, 0),
 				minChoicesForSearch: 0,
 			},
 		],
@@ -309,8 +309,8 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 
 			let muteState = state.getSendMute(ChannelType.Input, inputId, zoneId)
 			debug(`(Callback) ${FeedbackId.InputToZoneMute}`, {
-				input: inputId + 1,
-				zone: zoneId + 1,
+				input: inputId,
+				zone: zoneId,
 				mute: muteState,
 				feedbackId: feedback.id,
 			})
@@ -321,8 +321,8 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 			let inputId = parseInt(feedback.options.input)
 			let zoneId = parseInt(feedback.options.zone)
 			debug(`(Unsubscribe) ${FeedbackId.InputToZoneMute}`, {
-				input: inputId + 1,
-				zone: zoneId + 1,
+				input: inputId,
+				zone: zoneId,
 				feedbackId: feedback.id,
 			})
 
@@ -340,7 +340,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 				id: 'input',
 				label: 'Input',
 				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Input', numberOfInputs, -1),
+				choices: getChoicesArrayWithIncrementingNumbers('Input', numberOfInputs, 0),
 				minChoicesForSearch: 0,
 			},
 			{
@@ -348,7 +348,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 				id: 'zone',
 				label: 'Zone',
 				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Zone', numberOfZones, -1),
+				choices: getChoicesArrayWithIncrementingNumbers('Zone', numberOfZones, 0),
 				minChoicesForSearch: 0,
 			},
 		],
@@ -372,8 +372,8 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 			let inputId = parseInt(feedback.options.input)
 			let zoneId = parseInt(feedback.options.zone)
 			debug(`(Unsubscribe) ${FeedbackId.InputToZoneLevel}`, {
-				input: inputId + 1,
-				zone: zoneId + 1,
+				input: inputId,
+				zone: zoneId,
 				feedbackId: feedback.id,
 			})
 
