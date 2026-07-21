@@ -60,11 +60,11 @@ export function pollStateTimer(getSocket, interval = 10000, onError = console.er
 	}
 
 	function formatChannelIds(channels) {
-		return [...channels.keys()].map((id) => id + 1).join(', ') || '-'
+		return [...channels.keys()].map((id) => id).join(', ') || '-'
 	}
 
 	function formatSendIds(sends) {
-		return sends.map(({ idFrom, idTo }) => `${idFrom + 1}->${idTo + 1}`).join(', ') || '-'
+		return sends.map(({ idFrom, idTo }) => `${idFrom}->${idTo}`).join(', ') || '-'
 	}
 
 	function buildChannelRequests(type, ids) {
