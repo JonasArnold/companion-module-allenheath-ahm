@@ -87,33 +87,37 @@ export default [
 			updatedFeedbacks: [],
 		}
 
-		const feedbackDropdownOptionsToZeroBase = {
-			inputMute: ['input'],
-			inputLevel: ['input'],
-			zoneMute: ['zone'],
-			zoneLevel: ['zone'],
-			cgMute: ['cg'],
-			cgLevel: ['cg'],
-			inputToZoneMute: ['input', 'zone'],
-			inputToZoneLevel: ['input', 'zone'],
+		const ActionsDropdownOptionsToOneBased = {
+			MuteInput: ['mute_number'],
+			SetInputLevel: ['input'],
+			AdjustInputLevel: ['input'],
+			MuteZone: ['mute_number'],
+			SetZoneLevel: ['zone'],
+			AdjustZoneLevel: ['zone'],
+			MuteControlGroup: ['mute_number'],
+			SetControlGroupLevel: ['cg'],
+			AdjustControlGroupLevel: ['cg'],
+			MuteInputToZone: ['mute_number', 'zone'],
+			AdjustInputToZoneSendLevel: ['input', 'zone'],
+			AdjustZoneToZoneSendLevel: ['zone', 'zone']
 		}
 
-		function convertOneBasedFeedbackDropdownOptionsToZeroBased(feedback) {
-			const optionIds = feedbackDropdownOptionsToZeroBase[feedback.feedbackId]
+		function convertZeroBasedActionsDropdownOptionsToOneBased(actions) {
+			const optionIds = ActionsDropdownOptionsToOneBased[actions.feedbackId]
 			if (!optionIds) return false
 
 			let updated = false
 			for (const optionId of optionIds) {
-				if (!Object.hasOwn(feedback.options, optionId)) continue
+				if (!Object.hasOwn(actions.options, optionId)) continue
 
-				const value = feedback.options[optionId]
+				const value = actions.options[optionId]
 				const numberValue = Number(value)
-				if (!Number.isInteger(numberValue) || numberValue <= 0) continue
+				if (!Number.isInteger(numberValue) || numberValue < 0) continue
 
 				console.info(
-					`Updating Feedback, Found ${feedback.feedbackId} option ${optionId}=${numberValue}, converting to ${numberValue - 1}`,
+					`Updating Action, Found ${actions.feedbackId} option ${optionId}=${numberValue}, converting to ${numberValue + 1}`,
 				)
-				feedback.options[optionId] = numberValue - 1
+				actions.options[optionId] = numberValue + 1
 				updated = true
 			}
 
@@ -142,9 +146,9 @@ export default [
 		}
 
 		// update feedbacks, changing from textbox input (one-based) to dropdown with zero-based values
-		for (const feedback of props.feedbacks) {
-			if (convertOneBasedFeedbackDropdownOptionsToZeroBased(feedback)) {
-				changes.updatedFeedbacks.push(feedback)
+		for (const action of props.actions) {
+			if (convertZeroBasedActionsDropdownOptionsToOneBased(action)) {
+				changes.updatedActions.push(action)
 			}
 		}
 
