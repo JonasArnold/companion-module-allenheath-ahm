@@ -37,41 +37,46 @@ export const ActionId = {
  */
 
 /**
- * Builds dropdown options for Companion Actions
- * @param {String} name - leading text for dropdown options
- * @param {Number} qty
- * @param {Number} offset
+ * Builds a number input field for Companion Actions.
+ * Id of the field will be 'number'.
+ * @param {String} name - The label of the field
+ * @param {Number} max - maximum value of the number input
  * @returns {Object[]}
  */
-function listOptions(name, qty, offset) {
+function listOptions(name, max) {
 	return [
 		{
-			type: 'dropdown',
+			type: 'number',
 			id: 'number',
+			default: 1,
+			min: 1,
+			max: max,
 			label: name,
-			default: 0,
-			choices: getChoicesArrayWithIncrementingNumbers(name, qty, offset),
-			minChoicesForSearch: 0,
+			asInteger: true, // only allow integer values
+			clampValues: false, // would change values when switching AHM types
 		},
 	]
 }
 
 /**
- * Builds Companion Action Options for mute actions
- * @param {String} name - leading text for dropdown options
- * @param {Number} qty
- * @param {Number} offset
+ * Builds Companion Action Options for mute actions.
+ * Id of the number field will be 'mute_number'.
+ * Id of the mute checkbox field will be 'mute'.
+ * @param {String} name - The label of the number field
+ * @param {Number} max - maximum value of the number input
  * @returns {Object[]}
  */
-function muteOptions(name, qty, offset) {
+function muteOptions(name, max) {
 	return [
 		{
-			type: 'dropdown',
+			type: 'number',
 			id: 'mute_number',
+			default: 1,
+			min: 1,
+			max: max,
 			label: name,
-			default: 0,
-			choices: getChoicesArrayWithIncrementingNumbers(name, qty, offset),
-			minChoicesForSearch: 0,
+			asInteger: true, // only allow integer values
+			clampValues: false, // would change values when switching AHM types
 		},
 		{
 			type: 'checkbox',
@@ -84,20 +89,24 @@ function muteOptions(name, qty, offset) {
 
 /**
  * Builds Companion Action Options for set level actions
- * @param {String} name - leading text for dropdown options
- * @param {Number} qty
- * @param {Number} offset
+ * Id of the number field will be 'setlvl_ch_number'.
+ * Id of the level dropdown field will be 'level'.
+ * @param {String} name - The label of the number field
+ * @param {Number} max - maximum value of the number input
  * @returns {Object[]}
  */
-function setLevelOptions(name, qty, offset) {
+function setLevelOptions(name, max) {
 	return [
 		{
-			type: 'dropdown',
+			type: 'number',
 			id: 'setlvl_ch_number',
 			label: name,
-			default: 0,
-			choices: getChoicesArrayWithIncrementingNumbers(name, qty, offset),
-			minChoicesForSearch: 0,
+			default: 1,
+			min: 1,
+			max: max,
+			label: name,
+			asInteger: true, // only allow integer values
+			clampValues: false, // would change values when switching AHM types
 		},
 		{
 			type: 'dropdown',
@@ -111,20 +120,24 @@ function setLevelOptions(name, qty, offset) {
 
 /**
  * Builds Companion Action Options for inc/dec level actions
- * @param {String} name - leading text for dropdown options
- * @param {Number} qty
- * @param {Number} offset
+ * Id of the number field will be 'incdec_ch_number'.
+ * Id of the increment/decrement checkbox will be 'incdec'.
+ * @param {String} name - The label of the number field
+ * @param {Number} max - maximum value of the number input
  * @returns {Object[]}
  */
-function incDecOptions(name, qty, offset) {
+function incDecOptions(name, max) {
 	return [
 		{
-			type: 'dropdown',
+			type: 'number',
 			id: 'incdec_ch_number',
 			label: name,
-			default: 0,
-			choices: getChoicesArrayWithIncrementingNumbers(name, qty, offset),
-			minChoicesForSearch: 0,
+			default: 1,
+			min: 1,
+			max: max,
+			label: name,
+			asInteger: true, // only allow integer values
+			clampValues: false, // would change values when switching AHM types
 		},
 		{
 			type: 'dropdown',
@@ -142,8 +155,6 @@ function incDecOptions(name, qty, offset) {
 /**
  * Builds Companion Action Options for playback actions
  * @param {String} name - leading text for dropdown options
- * @param {Number} qty
- * @param {Number} offset
  * @returns {Object[]}
  */
 function playbackChannelOptions(name) {
@@ -167,7 +178,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.MuteInput] = {
 		name: 'Mute Input',
-		options: muteOptions('Input', numberOfInputs, 0),
+		options: muteOptions('Input', numberOfInputs),
 		callback: async (action) => {
 			let inputId = parseInt(action.options.mute_number)
 			let mute = action.options.mute
@@ -183,7 +194,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.MuteZone] = {
 		name: 'Mute Zone',
-		options: muteOptions('Zone', numberOfZones, 0),
+		options: muteOptions('Zone', numberOfZones),
 		callback: (action) => {
 			let zoneId = parseInt(action.options.mute_number)
 			let mute = action.options.mute
@@ -199,7 +210,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.MuteControlGroup] = {
 		name: 'Mute Control Group',
-		options: muteOptions('Control Group', numberOfControlGroups, 0),
+		options: muteOptions('Control Group', numberOfControlGroups),
 		callback: async (action) => {
 			let cgId = parseInt(action.options.mute_number)
 			let mute = action.options.mute
@@ -215,7 +226,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.MuteInputToZone] = {
 		name: 'Mute Input to Zone',
-		options: muteOptions('Input', numberOfInputs, 0).concat(listOptions('Zone', numberOfZones, 0)),
+		options: muteOptions('Input', numberOfInputs).concat(listOptions('Zone', numberOfZones)),
 		callback: (action) => {
 			let inputId = parseInt(action.options.mute_number)
 			let zoneId = parseInt(action.options.number)
@@ -237,7 +248,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.SetInputLevel] = {
 		name: 'Set Level of Input',
-		options: setLevelOptions('Input', numberOfInputs, 0),
+		options: setLevelOptions('Input', numberOfInputs),
 		callback: (action) => {
 			log.debug(ActionId.SetInputLevel, { inputId: action.options.setlvl_ch_number, level: action.options.level })
 			tcpClient.queue(setLevelCallback(action, ChannelType.Input))
@@ -249,7 +260,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.AdjustInputLevel] = {
 		name: 'Increment/Decrement Level of Input',
-		options: incDecOptions('Input', numberOfInputs, 0),
+		options: incDecOptions('Input', numberOfInputs),
 		callback: (action) => {
 			tcpClient.queue(incDecLevelCallback(action, ChannelType.Input))
 			setTimeout(() => {
@@ -260,23 +271,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.SetZoneLevel] = {
 		name: 'Set Level of Zone',
-		options: [
-			{
-				type: 'dropdown',
-				id: 'setlvl_ch_number',
-				label: 'Zone',
-				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Zone', numberOfZones, 0),
-				minChoicesForSearch: 0,
-			},
-			{
-				type: 'dropdown',
-				id: 'level',
-				label: 'Set Level (dBu)',
-				default: '0',
-				choices: getChoicesArrayOf1DArray(dbu_Values),
-			},
-		],
+		options: setLevelOptions('Zone', numberOfZones),
 		callback: (action) => {
 			log.debug(ActionId.SetZoneLevel, { zoneId: action.options.setlvl_ch_number, level: action.options.level })
 			tcpClient.queue(setLevelCallback(action, ChannelType.Zone))
@@ -288,7 +283,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.AdjustZoneLevel] = {
 		name: 'Increment/Decrement Level of Zone',
-		options: incDecOptions('Zone', numberOfZones, 0),
+		options: incDecOptions('Zone', numberOfZones),
 		callback: (action) => {
 			tcpClient.queue(incDecLevelCallback(action, ChannelType.Zone))
 			setTimeout(() => {
@@ -299,7 +294,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.SetControlGroupLevel] = {
 		name: 'Set Level of Control Group',
-		options: setLevelOptions('Control Group', numberOfControlGroups, 0),
+		options: setLevelOptions('Control Group', numberOfControlGroups),
 		callback: (action) => {
 			log.debug(ActionId.SetControlGroupLevel, {
 				controlGroupId: action.options.setlvl_ch_number,
@@ -314,7 +309,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.AdjustControlGroupLevel] = {
 		name: 'Increment/Decrement Level of Control Group',
-		options: incDecOptions('Control Group', numberOfControlGroups, 0),
+		options: incDecOptions('Control Group', numberOfControlGroups),
 		callback: (action) => {
 			tcpClient.queue(incDecLevelCallback(action, ChannelType.ControlGroup))
 			setTimeout(() => {
@@ -325,7 +320,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.AdjustInputToZoneSendLevel] = {
 		name: 'Increment/Decrement Input to Zone Send Level',
-		options: incDecOptions('Input', numberOfInputs, 0).concat(listOptions('Zone', numberOfZones, 0)),
+		options: incDecOptions('Input', numberOfInputs).concat(listOptions('Zone', numberOfZones)),
 		callback: (action) => {
 			tcpClient.queue(incDecSendLevelCallback(action, SendType.InputToZone))
 			setTimeout(() => {
@@ -343,7 +338,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.AdjustZoneToZoneSendLevel] = {
 		name: 'Increment/Decrement Zone to Zone Send Level',
-		options: incDecOptions('Zone', numberOfZones, 0).concat(listOptions('Zone', numberOfZones, 0)),
+		options: incDecOptions('Zone', numberOfZones).concat(listOptions('Zone', numberOfZones)),
 		callback: (action) => {
 			tcpClient.queue(incDecSendLevelCallback(action, SendType.ZoneToZone))
 			setTimeout(() => {
@@ -363,7 +358,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 	// This action has been converted to 1-based?
 	actions[ActionId.RecallPreset] = {
 		name: 'Recall Preset',
-		options: listOptions('Preset', PRESET_COUNT, 0),
+		options: listOptions('Preset', PRESET_COUNT),
 		callback: (action) => {
 			// note: presetId is 0-based
 			let presetId = parseInt(action.options.number) - 1
@@ -378,7 +373,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 	// This action remains 0-based
 	actions[ActionId.PlaybackTrack] = {
 		name: 'Playback Track',
-		options: listOptions('Playback Track', PLAYBACK_COUNT, -1).concat(playbackChannelOptions('Playback Channel')),
+		options: listOptions('Playback Track', PLAYBACK_COUNT).concat(playbackChannelOptions('Playback Channel')),
 		callback: (action) => {
 			// note: trackId is 0-based
 			let trackId = parseInt(action.options.number)

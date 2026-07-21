@@ -5,6 +5,7 @@ import { requestLevelInfo, requestMuteInfo } from './formatMIDI/channels.js'
 import { getContext } from './context.js'
 import { createLogger } from './utility/log.js'
 
+const PRESET_COUNT = 500
 const ENABLE_FEEDBACK_LOGGING = false
 const log = createLogger('Feedback')
 const debug = (event, values) => {
@@ -27,6 +28,28 @@ export const FeedbackId = {
  * @typedef {typeof FeedbackId[keyof typeof FeedbackId]} FeedbackId
  */
 
+/**
+ * Builds a number input field for Companion Feedbacks.
+ * @param {String} name - The label of the field
+ * @param {String} id - The id of the field
+ * @param {Number} max - maximum value of the number input
+ * @returns {Object[]}
+ */
+function generateNumberOptions(name, id, max) {
+	return [
+		{
+			type: 'number',
+			label: name,
+			id: id,
+			default: 1,
+			min: 1,
+			max: max,
+			asInteger: true, // only allow integer values
+			clampValues: false, // would change values when switching AHM types
+		},
+	]
+}
+
 export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroups) {
 	const { tcpClient, state } = getContext()
 	const feedbacks = {}
@@ -39,16 +62,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 			color: Colors.White,
 			bgcolor: Colors.Red,
 		},
-		options: [
-			{
-				type: 'dropdown',
-				id: 'input',
-				label: 'Input',
-				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Input', numberOfInputs, 0),
-				minChoicesForSearch: 0,
-			},
-		],
+		options: generateNumberOptions('Input', 'input', numberOfInputs),
 		callback: (feedback, context) => {
 			let inputId = parseInt(feedback.options.input)
 
@@ -71,16 +85,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 		type: 'value',
 		name: 'Input Level',
 		description: 'Returns level of input in dBu',
-		options: [
-			{
-				type: 'dropdown',
-				id: 'input',
-				label: 'Input',
-				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Input', numberOfInputs, 0),
-				minChoicesForSearch: 0,
-			},
-		],
+		options: generateNumberOptions('Input', 'input', numberOfInputs),
 		callback: (feedback, bank) => {
 			let inputId = parseInt(feedback.options.input)
 
@@ -117,16 +122,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 			color: Colors.White,
 			bgcolor: Colors.Red,
 		},
-		options: [
-			{
-				type: 'dropdown',
-				id: 'zone',
-				label: 'Zone',
-				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Zone', numberOfZones, 0),
-				minChoicesForSearch: 0,
-			},
-		],
+		options: generateNumberOptions('Zone', 'zone', numberOfZones),
 		callback: (feedback, bank) => {
 			let zoneId = parseInt(feedback.options.zone)
 
@@ -149,16 +145,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 		type: 'value',
 		name: 'Zone Level',
 		description: 'Returns level of zone in dBu',
-		options: [
-			{
-				type: 'dropdown',
-				id: 'zone',
-				label: 'Zone',
-				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Zone', numberOfZones, 0),
-				minChoicesForSearch: 0,
-			},
-		],
+		options: generateNumberOptions('Zone', 'zone', numberOfZones),
 		callback: (feedback, bank) => {
 			let zoneId = parseInt(feedback.options.zone)
 
@@ -190,16 +177,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 			color: Colors.White,
 			bgcolor: Colors.Red,
 		},
-		options: [
-			{
-				type: 'dropdown',
-				id: 'cg',
-				label: 'Control Group',
-				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Control Group', numberOfControlGroups, 0),
-				minChoicesForSearch: 0,
-			},
-		],
+		options: generateNumberOptions('Control Group', 'cg', numberOfControlGroups),
 		callback: (feedback, bank) => {
 			let controlGroupId = parseInt(feedback.options.cg)
 
@@ -229,16 +207,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 		type: 'value',
 		name: 'Control Group Level',
 		description: 'Returns level of control group in dBu',
-		options: [
-			{
-				type: 'dropdown',
-				id: 'cg',
-				label: 'Control Group',
-				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Control Group', numberOfControlGroups, 0),
-				minChoicesForSearch: 0,
-			},
-		],
+		options: generateNumberOptions('Control Group', 'cg', numberOfControlGroups),
 		callback: (feedback, bank) => {
 			let controlGroupId = parseInt(feedback.options.cg)
 
@@ -283,24 +252,9 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 			color: Colors.White,
 			bgcolor: Colors.Red,
 		},
-		options: [
-			{
-				type: 'dropdown',
-				id: 'input',
-				label: 'Input',
-				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Input', numberOfInputs, 0),
-				minChoicesForSearch: 0,
-			},
-			{
-				type: 'dropdown',
-				id: 'zone',
-				label: 'Zone',
-				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Zone', numberOfZones, 0),
-				minChoicesForSearch: 0,
-			},
-		],
+		options: generateNumberOptions('Input', 'input', numberOfInputs).concat(
+			generateNumberOptions('Zone', 'zone', numberOfZones),
+		),
 		callback: (feedback, bank) => {
 			let inputId = parseInt(feedback.options.input)
 			let zoneId = parseInt(feedback.options.zone)
@@ -334,24 +288,9 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 		type: 'value',
 		name: 'Input to Zone - Level',
 		description: 'Returns value of input sent to zone',
-		options: [
-			{
-				type: 'dropdown',
-				id: 'input',
-				label: 'Input',
-				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Input', numberOfInputs, 0),
-				minChoicesForSearch: 0,
-			},
-			{
-				type: 'dropdown',
-				id: 'zone',
-				label: 'Zone',
-				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Zone', numberOfZones, 0),
-				minChoicesForSearch: 0,
-			},
-		],
+		options: generateNumberOptions('Input', 'input', numberOfInputs).concat(
+			generateNumberOptions('Zone', 'zone', numberOfZones),
+		),
 		callback: (feedback, bank) => {
 			let inputId = parseInt(feedback.options.input)
 			let zoneId = parseInt(feedback.options.zone)
@@ -389,15 +328,7 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 			color: Colors.White,
 			bgcolor: Colors.Blue,
 		},
-		options: [
-			{
-				type: 'textinput',
-				label: 'Preset number',
-				id: 'preset',
-				useVariables: true,
-				default: 1,
-			},
-		],
+		options: generateNumberOptions('Preset', 'preset', PRESET_COUNT),
 		callback: (feedback) => {
 			let currentPreset = state.getPreset()
 			debug(`(Callback) ${FeedbackId.CurrentPreset}`, {
