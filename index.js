@@ -64,6 +64,8 @@ export default class AHMInstance extends InstanceBase {
 		this.configureRuntime()
 
 		this.initActions()
+		this.initFeedbacks()
+		this.initPresets()
 		this.initVariables()
 		this.tcpClient.init(this.config.host, MIDI_PORT)
 	}
