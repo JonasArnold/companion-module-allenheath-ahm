@@ -205,7 +205,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 			let mute = action.options.mute
 
 			log.debug(ActionId.MuteControlGroup, { cgId: cgId, mute })
-			let buffers = [Buffer.from([0x92, cgId, action.options.mute ? 0x7f : 0x3f, 0x92, cgId, 0])]
+			let buffers = [Buffer.from([0x92, cgId - 1, action.options.mute ? 0x7f : 0x3f, 0x92, cgId - 1, 0])]
 			tcpClient.queue(buffers)
 
 			state.setChannel(ChannelType.ControlGroup, cgId, undefined, mute)
@@ -360,7 +360,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 	}
 
 	// PRESET ACTIONS //
-	// This action has been converted to 1-based
+	// This action has been converted to 1-based?
 	actions[ActionId.RecallPreset] = {
 		name: 'Recall Preset',
 		options: listOptions('Preset', PRESET_COUNT, 0),
