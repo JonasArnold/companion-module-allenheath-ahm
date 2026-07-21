@@ -30,8 +30,8 @@ export function parseResponse(data) {
 		// receiving SysEx data
 
 		// Common data for all channel types:
-		let inputId = parseInt(data[10])
-		let zoneId = parseInt(data[12])
+		let inputId = parseInt(data[10]) + 1  // converting to 1-indexed
+		let zoneId = parseInt(data[12]) + 1  // converting to 1-indexed
 
 		if (data[9] === 0x02) {
 			// receiving send level data
@@ -70,10 +70,10 @@ export function parseResponse(data) {
 		}
 
 		// Data shared across all channel types:
-		let channelId = parseInt(data[2])
+		let channelId = parseInt(data[2]) + 1  // converting to 1-indexed
 		let level = parseInt(data[6])
 		let levelDbu = getDbuValue(level)
-		let variableName = handler.getVarName(channelId + 1) // +1 because the channelId is 0-indexed
+		let variableName = handler.getVarName(channelId)
 		log.debug(
 			'ChannelLevel',
 			{ channelType: handler.label.replaceAll(' ', ''), channelId, level, levelDbu, variableName },
@@ -89,7 +89,7 @@ export function parseResponse(data) {
 	if (data[0] in MUTE_HANDLERS) {
 		// first value of hex:90, hex:91, or hex:92 means mute of some kind
 		const handler = MUTE_HANDLERS[data[0]]
-		let channelId = parseInt(data[1])
+		let channelId = parseInt(data[1]) + 1  // converting to 1-indexed
 		let mute = data[2] === 127 ? true : data[2] === 63 ? false : undefined
 
 		if (!handler || mute === undefined) {
