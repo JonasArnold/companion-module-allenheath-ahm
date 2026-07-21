@@ -173,7 +173,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 			let mute = action.options.mute
 
 			log.debug(ActionId.MuteInput, { inputId: inputId, mute })
-			let buffers = [Buffer.from([0x90, inputId, action.options.mute ? 0x7f : 0x3f, 0x90, inputId, 0])]
+			let buffers = [Buffer.from([0x90, inputId - 1, action.options.mute ? 0x7f : 0x3f, 0x90, inputId - 1, 0])]
 			tcpClient.queue(buffers)
 
 			state.setChannel(ChannelType.Input, inputId, undefined, mute)
@@ -189,10 +189,10 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 			let mute = action.options.mute
 
 			log.debug(ActionId.MuteZone, { zoneId: zoneId, mute })
-			let buffers = [Buffer.from([0x91, zoneId, action.options.mute ? 0x7f : 0x3f, 0x91, zoneId, 0])]
+			let buffers = [Buffer.from([0x91, zoneId - 1, action.options.mute ? 0x7f : 0x3f, 0x91, zoneId - 1, 0])]
 			tcpClient.queue(buffers)
 
-			state.setChannel(ChannelType.Zone, zoneId, undefined, mute)
+			state.setChannel(ChannelType.Zone, zoneId - 1, undefined, mute)
 			companion.checkFeedbacks(FeedbackId.ZoneMute)
 		},
 	}
@@ -366,7 +366,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		options: listOptions('Preset', PRESET_COUNT, 0),
 		callback: (action) => {
 			// note: presetId is 0-based
-			let presetId = parseInt(action.options.number)
+			let presetId = parseInt(action.options.number) - 1
 			let bank = Math.floor(presetId / 128)
 			let presetOffset = presetId % 128
 			let buffers = [Buffer.from([0xb0, 0x00, bank, 0xc0, presetOffset])]
