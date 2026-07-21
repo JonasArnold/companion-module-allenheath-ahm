@@ -8,11 +8,11 @@ const log = createLogger('FormatMIDI')
  * Requests either if input send to zone is muted, or returns send level
  * @param {SendType} sendType - SendType
  * @param {SendInfoType} infoType - SendInfoType
- * @param {String} channelId - 0-indexed channel ID
- * @param {String} sendChannelId - 0-indexed send channel ID
+ * @param {Number} fromChNum - Source channel number (1-indexed)
+ * @param {Number} toChNum - Target channel number (1-indexed)
  * @returns { Buffer } Formulated command buffer
  */
-export function requestSendInfo(sendType, infoType, channelId, sendChannelId) {
+export function requestSendInfo(sendType, infoType, fromChNum, toChNum) {
 	if (checkIfValueOfEnum(sendType, SendType) == false) return
 	if (checkIfValueOfEnum(infoType, SendInfoType) == false) return
 
@@ -30,18 +30,18 @@ export function requestSendInfo(sendType, infoType, channelId, sendChannelId) {
 			0x12,
 			0x01,
 			0x00,
-			parseInt(chType),
+			chType,
 			0x01,
 			0x0f,
-			parseInt(infoType, 16),
-			parseInt(channelId),
-			parseInt(sendChType),
-			parseInt(sendChannelId),
+			infoType,
+			fromChNum - 1,
+			sendChType,
+			toChNum - 1,
 			0xf7,
 		]),
 	]
 	const commandName = infoType === SendInfoType.LEVEL ? 'RequestSendLevel' : 'RequestSendMute'
-	log.debug(commandName, { sendType, infoType, chType, channelId, sendChType, sendChannelId }, command)
+	log.debug(commandName, { sendType, infoType, chType, fromChNum, sendChType, toChNum }, command)
 	return command
 }
 
@@ -58,8 +58,8 @@ export function incDecSendLevelCallback(action, type) {
 
 	let chType = getChTypeOfSendType(type)
 	let sendChType = getSendChTypeOfSendType(type)
-	let channelId = parseInt(action.options.incdec_ch_number)
-	let sendChannelId = parseInt(action.options.number)
+	let fromChNum = action.options.incdec_ch_number
+	let toChNum = action.options.number
 	let incdecSelector = action.options.incdec == 'inc' ? 0x7f : 0x3f
 
 	const command = [
@@ -74,16 +74,16 @@ export function incDecSendLevelCallback(action, type) {
 			0x00,
 			chType,
 			0x04,
-			channelId,
+			fromChNum - 1,
 			sendChType,
-			sendChannelId,
+			toChNum - 1,
 			incdecSelector,
 			0xf7,
 		]),
 	]
 	log.debug(
 		'AdjustSendLevel',
-		{ type, chType, channelId, sendChType, sendChannelId, operation: action.options.incdec, selector: incdecSelector },
+		{ type, chType, fromChNum, sendChType, toChNum, operation: action.options.incdec, selector: incdecSelector },
 		command,
 	)
 	return command
@@ -91,12 +91,12 @@ export function incDecSendLevelCallback(action, type) {
 
 /**
  * Prepare MIDI string for setting input to zone mute
- * @param {Number} inputId - 0-indexed input channel ID
- * @param {Number} zoneId - 0-indexed zone channel ID
+ * @param {Number} inputNumber - Input channel number (1-indexed)
+ * @param {Number} zoneNumber - Zone number (1-indexed)
  * @param {Boolean} mute - mute state to set
  * @returns {Buffer} Hex MIDI buffer ready to send
  */
-export function setInputToZoneMute(inputId, zoneId, mute) {
+export function setInputToZoneMute(inputNumber, zoneNumber, mute) {
 	const command = [
 		Buffer.from([
 			0xf0,
@@ -109,13 +109,13 @@ export function setInputToZoneMute(inputId, zoneId, mute) {
 			0x00,
 			0x00,
 			0x03,
-			inputId,
+			inputNumber - 1,
 			0x01,
-			zoneId,
+			zoneNumber - 1,
 			mute ? 0x7f : 0x3f,
 			0xf7,
 		]),
 	]
-	log.debug('SetInputToZoneMute', { inputId, zoneId, mute }, command)
+	log.debug('SetInputToZoneMute', { inputNumber, zoneNumber, mute }, command)
 	return command
 }

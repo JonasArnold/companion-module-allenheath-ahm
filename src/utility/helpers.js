@@ -5,26 +5,6 @@ import { createLogger } from './log.js'
 const log = createLogger('Helpers')
 
 /**
- * Generates a Dropdown Choices Array with labelled incrementing values.
- * Example: name = "Mute Input", Qty=64, Offset=-1
- * Output:
- * { id: '0', label: 'Mute Input 1' },
- * { id: '1', label: 'Mute Input 2' },
- * ...
- * { id: '63', label: 'Mute Input 64' },
- * @param name Prefix of the label
- * @param qty Amount of elements to generate
- * @param offset offset between number of elements
- */
-export function getChoicesArrayWithIncrementingNumbers(name, qty, offset) {
-	let choices = []
-	for (let i = 1; i <= qty; i++) {
-		choices.push({ label: `${name} ${i}`, id: i + offset })
-	}
-	return choices
-}
-
-/**
  * Generates a Dropdown Choices Array with values of a single-dimension array.
  * Id is just counted up, starting from 0.
  * Output:

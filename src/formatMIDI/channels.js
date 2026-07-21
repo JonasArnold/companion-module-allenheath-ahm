@@ -7,32 +7,30 @@ const log = createLogger('FormatMIDI')
 /**
  * Requests channel level
  * @param {ChannelType} type - ChannelType
- * @param {String} id - Channel ID (0-indexed)
+ * @param {Number} chNumber - Channel number (1-indexed)
  * @returns { Buffer } Formulated command buffer
  */
-export function requestLevelInfo(type, id) {
+export function requestLevelInfo(type, chNumber) {
 	if (checkIfValueOfEnum(type, ChannelType) == false) return
 
 	const command = [
-		Buffer.from([0xf0, 0x00, 0x00, 0x1a, 0x50, 0x12, 0x01, 0x00, parseInt(type), 0x01, 0x0b, 0x17, parseInt(id), 0xf7]),
+		Buffer.from([0xf0, 0x00, 0x00, 0x1a, 0x50, 0x12, 0x01, 0x00, type, 0x01, 0x0b, 0x17, chNumber - 1, 0xf7]),
 	]
-	log.debug('RequestChannelLevel', { type, channelId: id }, command)
+	log.debug('RequestChannelLevel', { type, chNumber }, command)
 	return command
 }
 
 /**
  * Requests if channel is muted
  * @param {ChannelType} type - ChannelType
- * @param {String} id - Channel ID (0-indexed)
+ * @param {Number} chNumber - Channel number (1-indexed)
  * @returns { Buffer } Formulated command buffer
  */
-export function requestMuteInfo(type, id) {
+export function requestMuteInfo(type, chNumber) {
 	if (checkIfValueOfEnum(type, ChannelType) == false) return
 
-	const command = [
-		Buffer.from([0xf0, 0x00, 0x00, 0x1a, 0x50, 0x12, 0x01, 0x00, parseInt(type), 0x01, 0x09, parseInt(id), 0xf7]),
-	]
-	log.debug('RequestChannelMute', { type, channelId: id }, command)
+	const command = [Buffer.from([0xf0, 0x00, 0x00, 0x1a, 0x50, 0x12, 0x01, 0x00, type, 0x01, 0x09, chNumber - 1, 0xf7])]
+	log.debug('RequestChannelMute', { type, chNumber }, command)
 	return command
 }
 
@@ -47,12 +45,12 @@ export function setLevelCallback(action, type) {
 		return
 	}
 
-	let typeHex = parseInt(0xb0 + type) // type code for Command "Channel Level"
-	let chNumber = parseInt(action.options.setlvl_ch_number)
+	let typeHex = 0xb0 + type // type code for Command "Channel Level"
+	let chNumber = action.options.setlvl_ch_number
 	let levelDec = parseInt(action.options.level)
 
-	const command = [Buffer.from([typeHex, 0x63, chNumber, typeHex, 0x62, 0x17, typeHex, 0x06, levelDec])]
-	log.debug('SetChannelLevel', { type, channelId: chNumber, level: levelDec }, command)
+	const command = [Buffer.from([typeHex, 0x63, chNumber - 1, typeHex, 0x62, 0x17, typeHex, 0x06, levelDec])]
+	log.debug('SetChannelLevel', { type, chNumber, level: levelDec }, command)
 	return command
 }
 
@@ -67,15 +65,15 @@ export function incDecLevelCallback(action, type) {
 		return
 	}
 
-	let typeCodeSetLevel = parseInt(0xb0 + type) // type code for Command "Level Increment / Decrement"
-	let chNumber = parseInt(action.options.incdec_ch_number)
+	let typeCodeSetLevel = 0xb0 + type // type code for Command "Level Increment / Decrement"
+	let chNumber = action.options.incdec_ch_number
 	let incdecSelector = action.options.incdec == 'inc' ? 0x7f : 0x3f
 
 	const command = [
 		Buffer.from([
 			typeCodeSetLevel,
 			0x63,
-			chNumber,
+			chNumber - 1,
 			typeCodeSetLevel,
 			0x62,
 			0x20,
@@ -86,7 +84,7 @@ export function incDecLevelCallback(action, type) {
 	]
 	log.debug(
 		'AdjustChannelLevel',
-		{ type, channelId: chNumber, operation: action.options.incdec, selector: incdecSelector },
+		{ type, chNumber, operation: action.options.incdec, selector: incdecSelector },
 		command,
 	)
 	return command

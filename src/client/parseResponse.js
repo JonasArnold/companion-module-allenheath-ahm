@@ -30,16 +30,16 @@ export function parseResponse(data) {
 		// receiving SysEx data
 
 		// Common data for all channel types:
-		let inputId = parseInt(data[10]) + 1  // converting to 1-indexed
-		let zoneId = parseInt(data[12]) + 1  // converting to 1-indexed
+		let inputNum = parseInt(data[10]) + 1 // converting to 1-indexed
+		let zoneNum = parseInt(data[12]) + 1 // converting to 1-indexed
 
 		if (data[9] === 0x02) {
 			// receiving send level data
 			let levelRaw = parseInt(data[13])
 			let levelDbu = getDbuValue(levelRaw)
-			log.debug('InputToZoneLevel', { inputId, zoneId, levelRaw, levelDbu }, data)
+			log.debug('InputToZoneLevel', { inputNum, zoneNum, levelRaw, levelDbu }, data)
 
-			state.setSend(ChannelType.Input, inputId, zoneId, levelRaw, undefined)
+			state.setSend(ChannelType.Input, inputNum, zoneNum, levelRaw, undefined)
 			companion.checkFeedbacks(FeedbackId.InputToZoneLevel)
 			return
 		}
@@ -51,9 +51,9 @@ export function parseResponse(data) {
 				log.warn('UnparsedResponse', { reason: 'InvalidSendMuteValue' }, data)
 				return
 			}
-			log.debug('InputToZoneMute', { inputId, zoneId, mute }, data)
+			log.debug('InputToZoneMute', { inputNum, zoneNum, mute }, data)
 
-			state.setSend(ChannelType.Input, inputId, zoneId, undefined, mute)
+			state.setSend(ChannelType.Input, inputNum, zoneNum, undefined, mute)
 			companion.checkFeedbacks(FeedbackId.InputToZoneMute)
 			return
 		}
@@ -70,17 +70,17 @@ export function parseResponse(data) {
 		}
 
 		// Data shared across all channel types:
-		let channelId = parseInt(data[2]) + 1  // converting to 1-indexed
+		let chNumber = parseInt(data[2]) + 1 // converting to 1-indexed
 		let level = parseInt(data[6])
 		let levelDbu = getDbuValue(level)
-		let variableName = handler.getVarName(channelId)
+		let variableName = handler.getVarName(chNumber)
 		log.debug(
 			'ChannelLevel',
-			{ channelType: handler.label.replaceAll(' ', ''), channelId, level, levelDbu, variableName },
+			{ channelType: handler.label.replaceAll(' ', ''), chNumber, level, levelDbu, variableName },
 			data,
 		)
 
-		state.setChannel(handler.type, channelId, level, undefined)
+		state.setChannel(handler.type, chNumber, level, undefined)
 		companion.setVariableValues({ [variableName]: levelDbu })
 		companion.checkFeedbacks(handler.feedback)
 		return
@@ -89,16 +89,16 @@ export function parseResponse(data) {
 	if (data[0] in MUTE_HANDLERS) {
 		// first value of hex:90, hex:91, or hex:92 means mute of some kind
 		const handler = MUTE_HANDLERS[data[0]]
-		let channelId = parseInt(data[1]) + 1  // converting to 1-indexed
+		let chNumber = parseInt(data[1]) + 1 // converting to 1-indexed
 		let mute = data[2] === 127 ? true : data[2] === 63 ? false : undefined
 
 		if (!handler || mute === undefined) {
 			log.warn('UnparsedResponse', { reason: 'InvalidChannelMuteValue' }, data)
 			return
 		}
-		log.debug('ChannelMute', { channelType: handler.label.replaceAll(' ', ''), channelId, mute }, data)
+		log.debug('ChannelMute', { channelType: handler.label.replaceAll(' ', ''), chNumber, mute }, data)
 
-		state.setChannel(handler.type, channelId, undefined, mute)
+		state.setChannel(handler.type, chNumber, undefined, mute)
 		companion.checkFeedbacks(handler.feedback)
 		return
 	}

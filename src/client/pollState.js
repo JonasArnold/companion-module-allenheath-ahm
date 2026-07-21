@@ -48,30 +48,30 @@ export function pollStateTimer(getSocket, interval = 10000, onError = console.er
 				socket.queue(req, Priority.LOW)
 			}
 
-			log.debug(`Inputs: ${formatChannelIds(inputChannels)}`)
-			log.debug(`Zones: ${formatChannelIds(zoneChannels)}`)
-			log.debug(`Control groups: ${formatChannelIds(controlGroups)}`)
-			log.debug(`Input -> Zone sends: ${formatSendIds(inputToZoneSends)}`)
-			log.debug(`Zone -> Zone sends: ${formatSendIds(zoneToZoneSends)}`)
+			log.debug(`Inputs: ${formatChannelNumbers(inputChannels)}`)
+			log.debug(`Zones: ${formatChannelNumbers(zoneChannels)}`)
+			log.debug(`Control groups: ${formatChannelNumbers(controlGroups)}`)
+			log.debug(`Input -> Zone sends: ${formatSendNumbers(inputToZoneSends)}`)
+			log.debug(`Zone -> Zone sends: ${formatSendNumbers(zoneToZoneSends)}`)
 			log.debug(`Queued ${requests.length} requests (${channelCount} channels, ${sendCount} sends)`)
 		} catch (err) {
 			onError(err)
 		}
 	}
 
-	function formatChannelIds(channels) {
-		return [...channels.keys()].map((id) => id).join(', ') || '-'
+	function formatChannelNumbers(channels) {
+		return [...channels.keys()].map((chNumber) => chNumber).join(', ') || '-'
 	}
 
-	function formatSendIds(sends) {
-		return sends.map(({ idFrom, idTo }) => `${idFrom}->${idTo}`).join(', ') || '-'
+	function formatSendNumbers(sends) {
+		return sends.map(({ fromChNum, toChNum }) => `${fromChNum}->${toChNum}`).join(', ') || '-'
 	}
 
-	function buildChannelRequests(type, ids) {
+	function buildChannelRequests(type, channels) {
 		const requests = []
 
-		for (const [id] of ids) {
-			requests.push(requestLevelInfo(type, id), requestMuteInfo(type, id))
+		for (const [chNumber] of channels) {
+			requests.push(requestLevelInfo(type, chNumber), requestMuteInfo(type, chNumber))
 		}
 
 		return requests
@@ -80,10 +80,10 @@ export function pollStateTimer(getSocket, interval = 10000, onError = console.er
 	function buildSendRequests(type, sends) {
 		const requests = []
 
-		for (const { idFrom, idTo } of sends) {
+		for (const { fromChNum, toChNum } of sends) {
 			requests.push(
-				requestSendInfo(type, SendInfoType.LEVEL, idFrom, idTo),
-				requestSendInfo(type, SendInfoType.MUTE, idFrom, idTo),
+				requestSendInfo(type, SendInfoType.LEVEL, fromChNum, toChNum),
+				requestSendInfo(type, SendInfoType.MUTE, fromChNum, toChNum),
 			)
 		}
 

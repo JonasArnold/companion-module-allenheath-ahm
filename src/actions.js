@@ -1,10 +1,6 @@
-import {
-	getChoicesArrayWithIncrementingNumbers,
-	getChoicesArrayOf1DArray,
-	getChoicesArrayOfKeyValueObject,
-} from './utility/helpers.js'
+import { getChoicesArrayOf1DArray, getChoicesArrayOfKeyValueObject } from './utility/helpers.js'
 import { ChannelType, SendType, SendInfoType, dbu_Values, PlaybackChannel } from './utility/constants.js'
-import { setLevelCallback, incDecLevelCallback, requestLevelInfo, requestMuteInfo } from './formatMIDI/channels.js'
+import { setLevelCallback, incDecLevelCallback, requestLevelInfo } from './formatMIDI/channels.js'
 import { requestSendInfo, incDecSendLevelCallback, setInputToZoneMute } from './formatMIDI/sends.js'
 import { setPlaybackTrack } from './formatMIDI/playback.js'
 import { getContext } from './context.js'
@@ -39,19 +35,19 @@ export const ActionId = {
 /**
  * Builds a number input field for Companion Actions.
  * Id of the field will be 'number'.
- * @param {String} name - The label of the field
+ * @param {String} label - The label of the field
  * @param {Number} max - maximum value of the number input
  * @returns {Object[]}
  */
-function listOptions(name, max) {
+function listOptions(label, max) {
 	return [
 		{
 			type: 'number',
 			id: 'number',
+			label,
 			default: 1,
 			min: 1,
 			max: max,
-			label: name,
 			asInteger: true, // only allow integer values
 			clampValues: false, // would change values when switching AHM types
 		},
@@ -62,19 +58,19 @@ function listOptions(name, max) {
  * Builds Companion Action Options for mute actions.
  * Id of the number field will be 'mute_number'.
  * Id of the mute checkbox field will be 'mute'.
- * @param {String} name - The label of the number field
+ * @param {String} label - The label of the number field
  * @param {Number} max - maximum value of the number input
  * @returns {Object[]}
  */
-function muteOptions(name, max) {
+function muteOptions(label, max) {
 	return [
 		{
 			type: 'number',
 			id: 'mute_number',
+			label,
 			default: 1,
 			min: 1,
 			max: max,
-			label: name,
 			asInteger: true, // only allow integer values
 			clampValues: false, // would change values when switching AHM types
 		},
@@ -91,20 +87,19 @@ function muteOptions(name, max) {
  * Builds Companion Action Options for set level actions
  * Id of the number field will be 'setlvl_ch_number'.
  * Id of the level dropdown field will be 'level'.
- * @param {String} name - The label of the number field
+ * @param {String} label - The label of the number field
  * @param {Number} max - maximum value of the number input
  * @returns {Object[]}
  */
-function setLevelOptions(name, max) {
+function setLevelOptions(label, max) {
 	return [
 		{
 			type: 'number',
 			id: 'setlvl_ch_number',
-			label: name,
+			label,
 			default: 1,
 			min: 1,
 			max: max,
-			label: name,
 			asInteger: true, // only allow integer values
 			clampValues: false, // would change values when switching AHM types
 		},
@@ -122,20 +117,19 @@ function setLevelOptions(name, max) {
  * Builds Companion Action Options for inc/dec level actions
  * Id of the number field will be 'incdec_ch_number'.
  * Id of the increment/decrement checkbox will be 'incdec'.
- * @param {String} name - The label of the number field
+ * @param {String} label - The label of the number field
  * @param {Number} max - maximum value of the number input
  * @returns {Object[]}
  */
-function incDecOptions(name, max) {
+function incDecOptions(label, max) {
 	return [
 		{
 			type: 'number',
 			id: 'incdec_ch_number',
-			label: name,
+			label,
 			default: 1,
 			min: 1,
 			max: max,
-			label: name,
 			asInteger: true, // only allow integer values
 			clampValues: false, // would change values when switching AHM types
 		},
@@ -154,15 +148,15 @@ function incDecOptions(name, max) {
 
 /**
  * Builds Companion Action Options for playback actions
- * @param {String} name - leading text for dropdown options
+ * @param {String} label - leading text for dropdown options
  * @returns {Object[]}
  */
-function playbackChannelOptions(name) {
+function playbackChannelOptions(label) {
 	return [
 		{
 			type: 'dropdown',
 			id: 'playbackChannel',
-			label: name,
+			label,
 			default: 0,
 			choices: getChoicesArrayOfKeyValueObject(PlaybackChannel),
 			minChoicesForSearch: 0,
@@ -180,14 +174,14 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		name: 'Mute Input',
 		options: muteOptions('Input', numberOfInputs),
 		callback: async (action) => {
-			let inputId = parseInt(action.options.mute_number)
+			let inputNum = action.options.mute_number
 			let mute = action.options.mute
 
-			log.debug(ActionId.MuteInput, { inputId: inputId, mute })
-			let buffers = [Buffer.from([0x90, inputId - 1, action.options.mute ? 0x7f : 0x3f, 0x90, inputId - 1, 0])]
+			log.debug(ActionId.MuteInput, { inputNum, mute })
+			let buffers = [Buffer.from([0x90, inputNum - 1, action.options.mute ? 0x7f : 0x3f, 0x90, inputNum - 1, 0])]
 			tcpClient.queue(buffers)
 
-			state.setChannel(ChannelType.Input, inputId, undefined, mute)
+			state.setChannel(ChannelType.Input, inputNum, undefined, mute)
 			companion.checkFeedbacks(FeedbackId.InputMute)
 		},
 	}
@@ -196,14 +190,14 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		name: 'Mute Zone',
 		options: muteOptions('Zone', numberOfZones),
 		callback: (action) => {
-			let zoneId = parseInt(action.options.mute_number)
+			let zoneNum = action.options.mute_number
 			let mute = action.options.mute
 
-			log.debug(ActionId.MuteZone, { zoneId: zoneId, mute })
-			let buffers = [Buffer.from([0x91, zoneId - 1, action.options.mute ? 0x7f : 0x3f, 0x91, zoneId - 1, 0])]
+			log.debug(ActionId.MuteZone, { zoneNum, mute })
+			let buffers = [Buffer.from([0x91, zoneNum - 1, action.options.mute ? 0x7f : 0x3f, 0x91, zoneNum - 1, 0])]
 			tcpClient.queue(buffers)
 
-			state.setChannel(ChannelType.Zone, zoneId - 1, undefined, mute)
+			state.setChannel(ChannelType.Zone, zoneNum, undefined, mute)
 			companion.checkFeedbacks(FeedbackId.ZoneMute)
 		},
 	}
@@ -212,14 +206,14 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		name: 'Mute Control Group',
 		options: muteOptions('Control Group', numberOfControlGroups),
 		callback: async (action) => {
-			let cgId = parseInt(action.options.mute_number)
+			let cgNum = action.options.mute_number
 			let mute = action.options.mute
 
-			log.debug(ActionId.MuteControlGroup, { cgId: cgId, mute })
-			let buffers = [Buffer.from([0x92, cgId - 1, action.options.mute ? 0x7f : 0x3f, 0x92, cgId - 1, 0])]
+			log.debug(ActionId.MuteControlGroup, { cgNum, mute })
+			let buffers = [Buffer.from([0x92, cgNum - 1, action.options.mute ? 0x7f : 0x3f, 0x92, cgNum - 1, 0])]
 			tcpClient.queue(buffers)
 
-			state.setChannel(ChannelType.ControlGroup, cgId, undefined, mute)
+			state.setChannel(ChannelType.ControlGroup, cgNum, undefined, mute)
 			companion.checkFeedbacks(FeedbackId.ControlGroupMute)
 		},
 	}
@@ -228,18 +222,18 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		name: 'Mute Input to Zone',
 		options: muteOptions('Input', numberOfInputs).concat(listOptions('Zone', numberOfZones)),
 		callback: (action) => {
-			let inputId = parseInt(action.options.mute_number)
-			let zoneId = parseInt(action.options.number)
+			let inputNum = action.options.mute_number
+			let zoneNum = action.options.number
 
-			log.debug(ActionId.MuteInputToZone, { inputId: inputId, zoneId: zoneId, infoType: SendInfoType.MUTE })
-			tcpClient.queue(setInputToZoneMute(inputId, zoneId, action.options.mute))
+			log.debug(ActionId.MuteInputToZone, { inputNum, zoneNum, infoType: SendInfoType.MUTE })
+			tcpClient.queue(setInputToZoneMute(inputNum, zoneNum, action.options.mute))
 
 			// manually update internal state
-			state.setSend(ChannelType.Input, inputId, zoneId, undefined, action.options.mute)
+			state.setSend(ChannelType.Input, inputNum, zoneNum, undefined, action.options.mute)
 			companion.checkFeedbacks(FeedbackId.InputToZoneMute)
 
 			setTimeout(() => {
-				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.MUTE, inputId, zoneId))
+				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.MUTE, inputNum, zoneNum))
 			}, 200)
 		},
 	}
@@ -250,7 +244,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		name: 'Set Level of Input',
 		options: setLevelOptions('Input', numberOfInputs),
 		callback: (action) => {
-			log.debug(ActionId.SetInputLevel, { inputId: action.options.setlvl_ch_number, level: action.options.level })
+			log.debug(ActionId.SetInputLevel, { inputNum: action.options.setlvl_ch_number, level: action.options.level })
 			tcpClient.queue(setLevelCallback(action, ChannelType.Input))
 			setTimeout(() => {
 				tcpClient.queue(requestLevelInfo(ChannelType.Input, action.options.setlvl_ch_number))
@@ -264,7 +258,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		callback: (action) => {
 			tcpClient.queue(incDecLevelCallback(action, ChannelType.Input))
 			setTimeout(() => {
-				tcpClient.queue(requestLevelInfo(ChannelType.Input, action.options.setlvl_ch_number))
+				tcpClient.queue(requestLevelInfo(ChannelType.Input, action.options.incdec_ch_number))
 			}, 200)
 		},
 	}
@@ -273,7 +267,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		name: 'Set Level of Zone',
 		options: setLevelOptions('Zone', numberOfZones),
 		callback: (action) => {
-			log.debug(ActionId.SetZoneLevel, { zoneId: action.options.setlvl_ch_number, level: action.options.level })
+			log.debug(ActionId.SetZoneLevel, { zoneNum: action.options.setlvl_ch_number, level: action.options.level })
 			tcpClient.queue(setLevelCallback(action, ChannelType.Zone))
 			setTimeout(() => {
 				tcpClient.queue(requestLevelInfo(ChannelType.Zone, action.options.setlvl_ch_number))
@@ -287,7 +281,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		callback: (action) => {
 			tcpClient.queue(incDecLevelCallback(action, ChannelType.Zone))
 			setTimeout(() => {
-				tcpClient.queue(requestLevelInfo(ChannelType.Zone, action.options.setlvl_ch_number))
+				tcpClient.queue(requestLevelInfo(ChannelType.Zone, action.options.incdec_ch_number))
 			}, 200)
 		},
 	}
@@ -297,7 +291,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		options: setLevelOptions('Control Group', numberOfControlGroups),
 		callback: (action) => {
 			log.debug(ActionId.SetControlGroupLevel, {
-				controlGroupId: action.options.setlvl_ch_number,
+				controlGroupNum: action.options.setlvl_ch_number,
 				level: action.options.level,
 			})
 			tcpClient.queue(setLevelCallback(action, ChannelType.ControlGroup))
@@ -313,7 +307,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		callback: (action) => {
 			tcpClient.queue(incDecLevelCallback(action, ChannelType.ControlGroup))
 			setTimeout(() => {
-				tcpClient.queue(requestLevelInfo(ChannelType.ControlGroup, action.options.setlvl_ch_number))
+				tcpClient.queue(requestLevelInfo(ChannelType.ControlGroup, action.options.incdec_ch_number))
 			}, 200)
 		},
 	}
@@ -328,8 +322,8 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 					requestSendInfo(
 						SendType.InputToZone,
 						SendInfoType.LEVEL,
-						parseInt(action.options.incdec_ch_number),
-						parseInt(action.options.number),
+						action.options.incdec_ch_number,
+						action.options.number,
 					),
 				)
 			}, 200)
@@ -346,8 +340,8 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 					requestSendInfo(
 						SendType.ZoneToZone,
 						SendInfoType.LEVEL,
-						parseInt(action.options.incdec_ch_number),
-						parseInt(action.options.number),
+						action.options.incdec_ch_number,
+						action.options.number,
 					),
 				)
 			}, 200)
@@ -355,13 +349,13 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 	}
 
 	// PRESET ACTIONS //
-	// This action has been converted to 1-based?
+
 	actions[ActionId.RecallPreset] = {
 		name: 'Recall Preset',
 		options: listOptions('Preset', PRESET_COUNT),
 		callback: (action) => {
-			// note: presetId is 0-based
-			let presetId = parseInt(action.options.number) - 1
+			// subtract 1 to calculate the 0-indexed preset number for the MIDI command
+			let presetId = action.options.number - 1
 			let bank = Math.floor(presetId / 128)
 			let presetOffset = presetId % 128
 			let buffers = [Buffer.from([0xb0, 0x00, bank, 0xc0, presetOffset])]
@@ -370,16 +364,15 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 	}
 
 	// PLAYBACK ACTIONS //
-	// This action remains 0-based
+
 	actions[ActionId.PlaybackTrack] = {
 		name: 'Playback Track',
 		options: listOptions('Playback Track', PLAYBACK_COUNT).concat(playbackChannelOptions('Playback Channel')),
 		callback: (action) => {
-			// note: trackId is 0-based
-			let trackId = parseInt(action.options.number)
-			let playbackChannel = parseInt(action.options.playbackChannel)
+			let trackNum = action.options.number
+			let playbackChannel = action.options.playbackChannel
 
-			tcpClient.queue(setPlaybackTrack(trackId, playbackChannel))
+			tcpClient.queue(setPlaybackTrack(trackNum, playbackChannel))
 		},
 	}
 

@@ -1,5 +1,5 @@
 import { Colors, SendType, ChannelType, SendInfoType } from './utility/constants.js'
-import { getDbuValue, getChoicesArrayWithIncrementingNumbers } from './utility/helpers.js'
+import { getDbuValue } from './utility/helpers.js'
 import { requestSendInfo } from './formatMIDI/sends.js'
 import { requestLevelInfo, requestMuteInfo } from './formatMIDI/channels.js'
 import { getContext } from './context.js'
@@ -40,10 +40,10 @@ function generateNumberOptions(name, id, max) {
 		{
 			type: 'number',
 			label: name,
-			id: id,
+			id,
 			default: 1,
 			min: 1,
-			max: max,
+			max,
 			asInteger: true, // only allow integer values
 			clampValues: false, // would change values when switching AHM types
 		},
@@ -64,18 +64,18 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 		},
 		options: generateNumberOptions('Input', 'input', numberOfInputs),
 		callback: (feedback, context) => {
-			let inputId = parseInt(feedback.options.input)
+			let inputNum = feedback.options.input
 
-			state.addChannel(ChannelType.Input, inputId, feedback.id, FeedbackId.InputMute)
+			state.addChannel(ChannelType.Input, inputNum, feedback.id, FeedbackId.InputMute)
 
-			let muteState = state.getMute(ChannelType.Input, inputId)
-			debug(`(Callback) ${FeedbackId.InputMute}`, { input: inputId, state: muteState, feedbackId: feedback.id })
+			let muteState = state.getMute(ChannelType.Input, inputNum)
+			debug(`(Callback) ${FeedbackId.InputMute}`, { input: inputNum, state: muteState, feedbackId: feedback.id })
 
 			return muteState
 		},
 		unsubscribe: (feedback) => {
-			let inputId = parseInt(feedback.options.input)
-			debug(`(Unsubscribe) ${FeedbackId.InputMute}`, { input: inputId, feedbackId: feedback.id })
+			let inputNum = feedback.options.input
+			debug(`(Unsubscribe) ${FeedbackId.InputMute}`, { input: inputNum, feedbackId: feedback.id })
 
 			state.removeChannel(feedback.id)
 		},
@@ -87,18 +87,18 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 		description: 'Returns level of input in dBu',
 		options: generateNumberOptions('Input', 'input', numberOfInputs),
 		callback: (feedback, bank) => {
-			let inputId = parseInt(feedback.options.input)
+			let inputNum = feedback.options.input
 
-			const { isNew } = state.addChannel(ChannelType.Input, inputId, feedback.id, FeedbackId.InputLevel)
+			const { isNew } = state.addChannel(ChannelType.Input, inputNum, feedback.id, FeedbackId.InputLevel)
 			if (isNew) {
 				// If new, immediately request info
-				tcpClient.queue(requestLevelInfo(ChannelType.Input, inputId))
-				tcpClient.queue(requestMuteInfo(ChannelType.Input, inputId))
+				tcpClient.queue(requestLevelInfo(ChannelType.Input, inputNum))
+				tcpClient.queue(requestMuteInfo(ChannelType.Input, inputNum))
 			}
 
-			let levelDec = state.getLevel(ChannelType.Input, inputId)
+			let levelDec = state.getLevel(ChannelType.Input, inputNum)
 			debug(`(Callback) ${FeedbackId.InputLevel}`, {
-				input: inputId,
+				input: inputNum,
 				level: levelDec,
 				isNew,
 				feedbackId: feedback.id,
@@ -107,8 +107,8 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 			return getDbuValue(levelDec)
 		},
 		unsubscribe: (feedback) => {
-			let inputId = parseInt(feedback.options.input)
-			debug(`(Unsubscribe) ${FeedbackId.InputLevel}`, { input: inputId, feedbackId: feedback.id })
+			let inputNum = feedback.options.input
+			debug(`(Unsubscribe) ${FeedbackId.InputLevel}`, { input: inputNum, feedbackId: feedback.id })
 
 			state.removeChannel(feedback.id)
 		},
@@ -124,18 +124,18 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 		},
 		options: generateNumberOptions('Zone', 'zone', numberOfZones),
 		callback: (feedback, bank) => {
-			let zoneId = parseInt(feedback.options.zone)
+			let zoneNum = feedback.options.zone
 
-			state.addChannel(ChannelType.Zone, zoneId, feedback.id, FeedbackId.ZoneMute)
+			state.addChannel(ChannelType.Zone, zoneNum, feedback.id, FeedbackId.ZoneMute)
 
-			let muteState = state.getMute(ChannelType.Zone, zoneId)
-			debug(`(Callback) ${FeedbackId.ZoneMute}`, { zone: zoneId, state: muteState, feedbackId: feedback.id })
+			let muteState = state.getMute(ChannelType.Zone, zoneNum)
+			debug(`(Callback) ${FeedbackId.ZoneMute}`, { zone: zoneNum, state: muteState, feedbackId: feedback.id })
 
 			return muteState
 		},
 		unsubscribe: (feedback) => {
-			let zoneId = parseInt(feedback.options.zone)
-			debug(`(Unsubscribe) ${FeedbackId.ZoneMute}`, { zone: zoneId, feedbackId: feedback.id })
+			let zoneNum = feedback.options.zone
+			debug(`(Unsubscribe) ${FeedbackId.ZoneMute}`, { zone: zoneNum, feedbackId: feedback.id })
 
 			state.removeChannel(feedback.id)
 		},
@@ -147,23 +147,23 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 		description: 'Returns level of zone in dBu',
 		options: generateNumberOptions('Zone', 'zone', numberOfZones),
 		callback: (feedback, bank) => {
-			let zoneId = parseInt(feedback.options.zone)
+			let zoneNum = feedback.options.zone
 
-			const { isNew } = state.addChannel(ChannelType.Zone, zoneId, feedback.id, FeedbackId.ZoneLevel)
+			const { isNew } = state.addChannel(ChannelType.Zone, zoneNum, feedback.id, FeedbackId.ZoneLevel)
 			if (isNew) {
 				// If new, immediately request info
-				tcpClient.queue(requestLevelInfo(ChannelType.Zone, zoneId))
-				tcpClient.queue(requestMuteInfo(ChannelType.Zone, zoneId))
+				tcpClient.queue(requestLevelInfo(ChannelType.Zone, zoneNum))
+				tcpClient.queue(requestMuteInfo(ChannelType.Zone, zoneNum))
 			}
 
-			let levelDec = state.getLevel(ChannelType.Zone, zoneId)
-			debug(`(Callback) ${FeedbackId.ZoneLevel}`, { zone: zoneId, level: levelDec, isNew, feedbackId: feedback.id })
+			let levelDec = state.getLevel(ChannelType.Zone, zoneNum)
+			debug(`(Callback) ${FeedbackId.ZoneLevel}`, { zone: zoneNum, level: levelDec, isNew, feedbackId: feedback.id })
 
 			return getDbuValue(levelDec)
 		},
 		unsubscribe: (feedback) => {
-			let zoneId = parseInt(feedback.options.zone)
-			debug(`(Unsubscribe) ${FeedbackId.ZoneLevel}`, { zone: zoneId, feedbackId: feedback.id })
+			let zoneNum = feedback.options.zone
+			debug(`(Unsubscribe) ${FeedbackId.ZoneLevel}`, { zone: zoneNum, feedbackId: feedback.id })
 
 			state.removeChannel(feedback.id)
 		},
@@ -179,13 +179,13 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 		},
 		options: generateNumberOptions('Control Group', 'cg', numberOfControlGroups),
 		callback: (feedback, bank) => {
-			let controlGroupId = parseInt(feedback.options.cg)
+			let controlGroupNum = feedback.options.cg
 
-			state.addChannel(ChannelType.ControlGroup, controlGroupId, feedback.id, FeedbackId.ControlGroupMute)
+			state.addChannel(ChannelType.ControlGroup, controlGroupNum, feedback.id, FeedbackId.ControlGroupMute)
 
-			let muteState = state.getMute(ChannelType.ControlGroup, controlGroupId)
+			let muteState = state.getMute(ChannelType.ControlGroup, controlGroupNum)
 			debug(`(Callback) ${FeedbackId.ControlGroupMute}`, {
-				controlGroup: controlGroupId,
+				controlGroup: controlGroupNum,
 				state: muteState,
 				feedbackId: feedback.id,
 			})
@@ -193,9 +193,9 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 			return muteState
 		},
 		unsubscribe: (feedback) => {
-			let controlGroupId = parseInt(feedback.options.cg)
+			let controlGroupNum = feedback.options.cg
 			debug(`(Unsubscribe) ${FeedbackId.ControlGroupMute}`, {
-				controlGroup: controlGroupId,
+				controlGroup: controlGroupNum,
 				feedbackId: feedback.id,
 			})
 
@@ -209,23 +209,23 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 		description: 'Returns level of control group in dBu',
 		options: generateNumberOptions('Control Group', 'cg', numberOfControlGroups),
 		callback: (feedback, bank) => {
-			let controlGroupId = parseInt(feedback.options.cg)
+			let controlGroupNum = feedback.options.cg
 
 			const { isNew } = state.addChannel(
 				ChannelType.ControlGroup,
-				controlGroupId,
+				controlGroupNum,
 				feedback.id,
 				FeedbackId.ControlGroupLevel,
 			)
 			if (isNew) {
 				// If new, immediately request info
-				tcpClient.queue(requestLevelInfo(ChannelType.ControlGroup, controlGroupId))
-				tcpClient.queue(requestMuteInfo(ChannelType.ControlGroup, controlGroupId))
+				tcpClient.queue(requestLevelInfo(ChannelType.ControlGroup, controlGroupNum))
+				tcpClient.queue(requestMuteInfo(ChannelType.ControlGroup, controlGroupNum))
 			}
 
-			let levelDec = state.getLevel(ChannelType.ControlGroup, controlGroupId)
+			let levelDec = state.getLevel(ChannelType.ControlGroup, controlGroupNum)
 			debug(`(Callback) ${FeedbackId.ControlGroupLevel}`, {
-				controlGroup: controlGroupId,
+				controlGroup: controlGroupNum,
 				level: levelDec,
 				isNew,
 				feedbackId: feedback.id,
@@ -234,9 +234,9 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 			return getDbuValue(levelDec)
 		},
 		unsubscribe: (feedback) => {
-			let controlGroupId = parseInt(feedback.options.cg)
+			let controlGroupNum = feedback.options.cg
 			debug(`(Unsubscribe) ${FeedbackId.ControlGroupLevel}`, {
-				controlGroup: controlGroupId,
+				controlGroup: controlGroupNum,
 				feedbackId: feedback.id,
 			})
 
@@ -256,15 +256,15 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 			generateNumberOptions('Zone', 'zone', numberOfZones),
 		),
 		callback: (feedback, bank) => {
-			let inputId = parseInt(feedback.options.input)
-			let zoneId = parseInt(feedback.options.zone)
+			let inputNum = feedback.options.input
+			let zoneNum = feedback.options.zone
 
-			state.addSend(ChannelType.Input, inputId, zoneId, feedback.id, FeedbackId.InputToZoneMute)
+			state.addSend(ChannelType.Input, inputNum, zoneNum, feedback.id, FeedbackId.InputToZoneMute)
 
-			let muteState = state.getSendMute(ChannelType.Input, inputId, zoneId)
+			let muteState = state.getSendMute(ChannelType.Input, inputNum, zoneNum)
 			debug(`(Callback) ${FeedbackId.InputToZoneMute}`, {
-				input: inputId,
-				zone: zoneId,
+				input: inputNum,
+				zone: zoneNum,
 				mute: muteState,
 				feedbackId: feedback.id,
 			})
@@ -272,11 +272,11 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 			return muteState
 		},
 		unsubscribe: (feedback) => {
-			let inputId = parseInt(feedback.options.input)
-			let zoneId = parseInt(feedback.options.zone)
+			let inputNum = feedback.options.input
+			let zoneNum = feedback.options.zone
 			debug(`(Unsubscribe) ${FeedbackId.InputToZoneMute}`, {
-				input: inputId,
-				zone: zoneId,
+				input: inputNum,
+				zone: zoneNum,
 				feedbackId: feedback.id,
 			})
 
@@ -292,27 +292,32 @@ export function getFeedbacks(numberOfInputs, numberOfZones, numberOfControlGroup
 			generateNumberOptions('Zone', 'zone', numberOfZones),
 		),
 		callback: (feedback, bank) => {
-			let inputId = parseInt(feedback.options.input)
-			let zoneId = parseInt(feedback.options.zone)
+			let inputNum = feedback.options.input
+			let zoneNum = feedback.options.zone
 
-			const { isNew } = state.addSend(ChannelType.Input, inputId, zoneId, feedback.id, FeedbackId.InputToZoneLevel)
+			const { isNew } = state.addSend(ChannelType.Input, inputNum, zoneNum, feedback.id, FeedbackId.InputToZoneLevel)
 			if (isNew) {
 				// If new, immediately request info
-				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.LEVEL, inputId, zoneId))
-				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.MUTE, inputId, zoneId))
+				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.LEVEL, inputNum, zoneNum))
+				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.MUTE, inputNum, zoneNum))
 			}
 
-			let levelDec = state.getSendLevel(ChannelType.Input, inputId, zoneId)
-			debug(`(Callback) ${FeedbackId.InputToZoneLevel}`, { inputId, zoneId, level: levelDec, feedbackId: feedback.id })
+			let levelDec = state.getSendLevel(ChannelType.Input, inputNum, zoneNum)
+			debug(`(Callback) ${FeedbackId.InputToZoneLevel}`, {
+				inputNum,
+				zoneNum,
+				level: levelDec,
+				feedbackId: feedback.id,
+			})
 
 			return getDbuValue(levelDec)
 		},
 		unsubscribe: (feedback) => {
-			let inputId = parseInt(feedback.options.input)
-			let zoneId = parseInt(feedback.options.zone)
+			let inputNum = feedback.options.input
+			let zoneNum = feedback.options.zone
 			debug(`(Unsubscribe) ${FeedbackId.InputToZoneLevel}`, {
-				input: inputId,
-				zone: zoneId,
+				input: inputNum,
+				zone: zoneNum,
 				feedbackId: feedback.id,
 			})
 
