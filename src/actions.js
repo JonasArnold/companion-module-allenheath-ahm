@@ -167,7 +167,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.MuteInput] = {
 		name: 'Mute Input',
-		options: muteOptions('Input', numberOfInputs, -1),
+		options: muteOptions('Input', numberOfInputs, 0),
 		callback: async (action) => {
 			let inputId = parseInt(action.options.mute_number)
 			let mute = action.options.mute
@@ -183,7 +183,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.MuteZone] = {
 		name: 'Mute Zone',
-		options: muteOptions('Zone', numberOfZones, -1),
+		options: muteOptions('Zone', numberOfZones, 0),
 		callback: (action) => {
 			let zoneId = parseInt(action.options.mute_number)
 			let mute = action.options.mute
@@ -199,7 +199,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.MuteControlGroup] = {
 		name: 'Mute Control Group',
-		options: muteOptions('Control Group', numberOfControlGroups, -1),
+		options: muteOptions('Control Group', numberOfControlGroups, 0),
 		callback: async (action) => {
 			let cgId = parseInt(action.options.mute_number)
 			let mute = action.options.mute
@@ -215,7 +215,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.MuteInputToZone] = {
 		name: 'Mute Input to Zone',
-		options: muteOptions('Input', numberOfInputs, -1).concat(listOptions('Zone', numberOfZones, -1)),
+		options: muteOptions('Input', numberOfInputs, 0).concat(listOptions('Zone', numberOfZones, 0)),
 		callback: (action) => {
 			let inputId = parseInt(action.options.mute_number)
 			let zoneId = parseInt(action.options.number)
@@ -237,7 +237,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.SetInputLevel] = {
 		name: 'Set Level of Input',
-		options: setLevelOptions('Input', numberOfInputs, -1),
+		options: setLevelOptions('Input', numberOfInputs, 0),
 		callback: (action) => {
 			log.debug(ActionId.SetInputLevel, { inputId: action.options.setlvl_ch_number, level: action.options.level })
 			tcpClient.queue(setLevelCallback(action, ChannelType.Input))
@@ -249,7 +249,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.AdjustInputLevel] = {
 		name: 'Increment/Decrement Level of Input',
-		options: incDecOptions('Input', numberOfInputs, -1),
+		options: incDecOptions('Input', numberOfInputs, 0),
 		callback: (action) => {
 			tcpClient.queue(incDecLevelCallback(action, ChannelType.Input))
 			setTimeout(() => {
@@ -266,7 +266,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 				id: 'setlvl_ch_number',
 				label: 'Zone',
 				default: 0,
-				choices: getChoicesArrayWithIncrementingNumbers('Zone', numberOfZones, -1),
+				choices: getChoicesArrayWithIncrementingNumbers('Zone', numberOfZones, 0),
 				minChoicesForSearch: 0,
 			},
 			{
@@ -288,7 +288,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.AdjustZoneLevel] = {
 		name: 'Increment/Decrement Level of Zone',
-		options: incDecOptions('Zone', numberOfZones, -1),
+		options: incDecOptions('Zone', numberOfZones, 0),
 		callback: (action) => {
 			tcpClient.queue(incDecLevelCallback(action, ChannelType.Zone))
 			setTimeout(() => {
@@ -299,7 +299,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.SetControlGroupLevel] = {
 		name: 'Set Level of Control Group',
-		options: setLevelOptions('Control Group', numberOfControlGroups, -1),
+		options: setLevelOptions('Control Group', numberOfControlGroups, 0),
 		callback: (action) => {
 			log.debug(ActionId.SetControlGroupLevel, {
 				controlGroupId: action.options.setlvl_ch_number,
@@ -314,7 +314,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.AdjustControlGroupLevel] = {
 		name: 'Increment/Decrement Level of Control Group',
-		options: incDecOptions('Control Group', numberOfControlGroups, -1),
+		options: incDecOptions('Control Group', numberOfControlGroups, 0),
 		callback: (action) => {
 			tcpClient.queue(incDecLevelCallback(action, ChannelType.ControlGroup))
 			setTimeout(() => {
@@ -325,7 +325,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.AdjustInputToZoneSendLevel] = {
 		name: 'Increment/Decrement Input to Zone Send Level',
-		options: incDecOptions('Input', numberOfInputs, -1).concat(listOptions('Zone', numberOfZones, -1)),
+		options: incDecOptions('Input', numberOfInputs, 0).concat(listOptions('Zone', numberOfZones, 0)),
 		callback: (action) => {
 			tcpClient.queue(incDecSendLevelCallback(action, SendType.InputToZone))
 			setTimeout(() => {
@@ -343,7 +343,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 
 	actions[ActionId.AdjustZoneToZoneSendLevel] = {
 		name: 'Increment/Decrement Zone to Zone Send Level',
-		options: incDecOptions('Zone', numberOfZones, -1).concat(listOptions('Zone', numberOfZones, -1)),
+		options: incDecOptions('Zone', numberOfZones, 0).concat(listOptions('Zone', numberOfZones, 0)),
 		callback: (action) => {
 			tcpClient.queue(incDecSendLevelCallback(action, SendType.ZoneToZone))
 			setTimeout(() => {
@@ -360,10 +360,10 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 	}
 
 	// PRESET ACTIONS //
-
+	// This action has been converted to 1-based
 	actions[ActionId.RecallPreset] = {
 		name: 'Recall Preset',
-		options: listOptions('Preset', PRESET_COUNT, -1),
+		options: listOptions('Preset', PRESET_COUNT, 0),
 		callback: (action) => {
 			// note: presetId is 0-based
 			let presetId = parseInt(action.options.number)
@@ -375,7 +375,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 	}
 
 	// PLAYBACK ACTIONS //
-
+	// This action remains 0-based
 	actions[ActionId.PlaybackTrack] = {
 		name: 'Playback Track',
 		options: listOptions('Playback Track', PLAYBACK_COUNT, -1).concat(playbackChannelOptions('Playback Channel')),
