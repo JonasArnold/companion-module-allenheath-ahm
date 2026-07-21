@@ -5,7 +5,7 @@ import { ActionId } from './actions.js'
 function getSimplePresetsArray(prefix, numPresets) {
 	let array = []
 
-	for (let i = 1; i < numPresets + 1; i++) {
+	for (let i = 1; i <= numPresets; i++) {
 		array.push(prefix + i)
 	}
 
@@ -15,7 +15,7 @@ function getSimplePresetsArray(prefix, numPresets) {
 function getSimplePresetsArrayWithSends(prefix, numPresets, zone) {
 	let array = []
 
-	for (let i = 1; i < numPresets + 1; i++) {
+	for (let i = 1; i <= numPresets; i++) {
 		array.push(prefix + i + '-' + zone)
 	}
 
@@ -26,13 +26,13 @@ export function getPresets(self) {
 	let presets = []
 
 	// Mute Inputs
-	for (let i = 0; i < self.numberOfInputs; i++) {
-		presets[`muteInput${i + 1}`] = {
+	for (let i = 1; i <= self.numberOfInputs; i++) {
+		presets[`muteInput${i}`] = {
 			type: 'simple',
-			name: `Mute Input ${i + 1}`,
+			name: `Mute Input ${i}`,
 			options: {},
 			style: {
-				text: `Mute Input ${i + 1}`,
+				text: `Mute Input ${i}`,
 				size: '12',
 				color: Colors.White,
 				bgcolor: Colors.Black,
@@ -79,13 +79,13 @@ export function getPresets(self) {
 	}
 
 	// Mute Zones
-	for (let i = 0; i < self.numberOfZones; i++) {
-		presets[`muteZone${i + 1}`] = {
+	for (let i = 1; i <= self.numberOfZones; i++) {
+		presets[`muteZone${i}`] = {
 			type: 'simple',
-			name: `Mute Zone ${i + 1}`,
+			name: `Mute Zone ${i}`,
 			options: {},
 			style: {
-				text: `Mute Zone ${i + 1}`,
+				text: `Mute Zone ${i}`,
 				size: '14',
 				color: Colors.White,
 				bgcolor: Colors.Black,
@@ -132,13 +132,13 @@ export function getPresets(self) {
 	}
 
 	// Mute Control Groups
-	for (let i = 0; i < self.numberOfControlGroups; i++) {
-		presets[`muteCG${i + 1}`] = {
+	for (let i = 1; i <= self.numberOfControlGroups; i++) {
+		presets[`muteCG${i}`] = {
 			type: 'simple',
-			name: `Mute CG ${i + 1}`,
+			name: `Mute CG ${i}`,
 			options: {},
 			style: {
-				text: `Mute Control Group ${i + 1}`,
+				text: `Mute Control Group ${i}`,
 				size: '12',
 				color: Colors.White,
 				bgcolor: Colors.Black,
@@ -185,14 +185,14 @@ export function getPresets(self) {
 	}
 
 	// Mute input to Zone
-	for (let i = 0; i < self.numberOfInputs; i++) {
-		for (let z = 0; z < self.numberOfZones; z++) {
-			presets[`muteSend${i + 1}-${z + 1}`] = {
+	for (let i = 1; i <= self.numberOfInputs; i++) {
+		for (let z = 1; z <= self.numberOfZones; z++) {
+			presets[`muteSend${i}-${z}`] = {
 				type: 'simple',
-				name: `Mute Input ${i + 1} to Zone ${z + 1}`,
+				name: `Mute Input ${i} to Zone ${z}`,
 				options: {},
 				style: {
-					text: `Mute Input ${i + 1} to Zone ${z + 1}`,
+					text: `Mute Input ${i} to Zone ${z}`,
 					size: '10',
 					color: Colors.White,
 					bgcolor: Colors.Black,
@@ -283,16 +283,16 @@ export function getPresets(self) {
 		],
 	})
 
-	for (let z = 0; z < self.numberOfZones; z++) {
+	for (let z = 1; z <= self.numberOfZones; z++) {
 		structure.push({
-			id: `muteSendToZone${z + 1}`,
-			name: `Mute Input to Zone ${z + 1}`,
+			id: `muteSendToZone${z}`,
+			name: `Mute Input to Zone ${z}`,
 			definitions: [
 				{
-					id: `muteSendToZone${z + 1}`,
+					id: `muteSendToZone${z}`,
 					// name: `Mute Input to Zone ${z + 1}`,
 					type: 'simple',
-					presets: getSimplePresetsArrayWithSends('muteSend', self.numberOfInputs, z + 1),
+					presets: getSimplePresetsArrayWithSends('muteSend', self.numberOfInputs, z),
 				},
 			],
 		})
