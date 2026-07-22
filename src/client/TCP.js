@@ -10,7 +10,7 @@ const TIME_BETW_MULTIPLE_REQ_MS = 150
 
 /**
  * TCP Client factory function. Creates TCP client and handles request queueing, sending, and receiving.
- * @returns {Function[]} Returns helper functions
+ * @returns {{destroy: Function, init: Function, queue: Function, clearQueue: Function, waitUntilIdle: Function, isConnected: Function, onConnected: Function, onDisconnect: Function}} Returns helper functions
  */
 export function TCPClient() {
 	let midiSocket
@@ -19,10 +19,42 @@ export function TCPClient() {
 	let isConnected = false
 	let onConnectedCallback
 	let onDisconnectCallback
-	let pollHoldUntil = 0
 	let cancelSleep = null
+	let idleWaiters = []
 
+	/**
+	 * Resolves all callers waiting for the transmit queue to become idle.
+	 * @returns {void}
+	 */
+	function notifyIdle() {
+		if (queueRunning || txQueue.length > 0) return
+
+		for (const resolve of idleWaiters) {
+			resolve()
+		}
+		idleWaiters = []
+	}
+
+	/**
+	 * Removes all pending transmit requests from the queue.
+	 * @returns {void}
+	 */
+	function clearQueue() {
+		const count = txQueue.length
+		txQueue = []
+		if (count > 0) {
+			log.debug('Cleared queued requests', { count })
+		}
+		notifyIdle()
+	}
+
+	/**
+	 * Destroys the TCP socket and clears pending transmit requests.
+	 * @returns {void}
+	 */
 	function destroy() {
+		clearQueue()
+
 		if (!midiSocket) return
 
 		midiSocket.destroy()
@@ -30,6 +62,12 @@ export function TCPClient() {
 		isConnected = false
 	}
 
+	/**
+	 * Creates a new TCP socket connection.
+	 * @param {string} host
+	 * @param {number} port
+	 * @returns {void}
+	 */
 	function init(host, port) {
 		destroy()
 
@@ -46,6 +84,7 @@ export function TCPClient() {
 
 		midiSocket.on('close', () => {
 			isConnected = false
+			clearQueue()
 			log.info('Disconnected', { host, port })
 			if (onDisconnectCallback) {
 				onDisconnectCallback()
@@ -73,27 +112,33 @@ export function TCPClient() {
 		})
 	}
 
+	/**
+	 * Registers a callback for successful TCP connection.
+	 * @param {Function} cb
+	 * @returns {void}
+	 */
 	function onConnected(cb) {
 		onConnectedCallback = cb
 	}
 
+	/**
+	 * Registers a callback for TCP disconnect.
+	 * @param {Function} cb
+	 * @returns {void}
+	 */
 	function onDisconnect(cb) {
 		onDisconnectCallback = cb
 	}
 
-	function holdPolling(ms) {
-		pollHoldUntil = Math.max(pollHoldUntil, Date.now() + ms)
-	}
-
 	/**
 	 * Queues MIDI packet for sending
-	 * @param {Buffer} buffers
+	 * @param {Buffer[]} buffers
 	 * @param {Priority} priority - defaults to high unless specified
+	 * @returns {void}
 	 */
 	function queue(buffers, priority = Priority.HIGH) {
 		if (priority === Priority.HIGH) {
 			txQueue.unshift({ buffers, priority, timestamp: Date.now() })
-			holdPolling(200)
 			if (cancelSleep) {
 				cancelSleep()
 				cancelSleep = null
@@ -104,6 +149,24 @@ export function TCPClient() {
 		startQueue()
 	}
 
+	/**
+	 * Resolves once the transmit queue has finished sending all pending requests.
+	 * @returns {Promise<void>}
+	 */
+	function waitUntilIdle() {
+		if (!queueRunning && txQueue.length === 0) {
+			return Promise.resolve()
+		}
+
+		return new Promise((resolve) => {
+			idleWaiters.push(resolve)
+		})
+	}
+
+	/**
+	 * Sends queued packets one at a time with a fixed delay between requests.
+	 * @returns {Promise<void>}
+	 */
 	async function startQueue() {
 		if (!isConnected) return
 
@@ -130,8 +193,14 @@ export function TCPClient() {
 		}
 
 		queueRunning = false
+		notifyIdle()
 	}
 
+	/**
+	 * Sends all buffers belonging to one queued MIDI request.
+	 * @param {Buffer[]} buffers
+	 * @returns {void}
+	 */
 	function send(buffers) {
 		if (!isConnected) return
 
@@ -148,7 +217,9 @@ export function TCPClient() {
 		destroy,
 		init,
 		queue,
-		isConnected,
+		clearQueue,
+		waitUntilIdle,
+		isConnected: () => isConnected,
 		onConnected,
 		onDisconnect,
 	}

@@ -22,6 +22,7 @@ export default class AHMInstance extends InstanceBase {
 
 	async init(config) {
 		this.config = config
+		this.pollStartTimeout = null
 
 		this.updateStatus(InstanceStatus.Connecting)
 
@@ -32,12 +33,16 @@ export default class AHMInstance extends InstanceBase {
 
 		// Polling callback hooks
 		this.tcpClient.onConnected(() => {
-			setTimeout(() => {
+			this.clearPollStartTimeout()
+			this.pollStartTimeout = setTimeout(() => {
+				this.pollStartTimeout = null
 				this.pollState.start()
 			}, 2000) // Waits 2 sec for initFeedbacks() to finish
 		})
 		this.tcpClient.onDisconnect(() => {
+			this.clearPollStartTimeout()
 			this.pollState.stop()
+			this.tcpClient.clearQueue()
 		})
 		// Init TCP connection
 		this.tcpClient.init(this.config.host, MIDI_PORT)
@@ -50,8 +55,10 @@ export default class AHMInstance extends InstanceBase {
 	}
 
 	async destroy() {
-		this.tcpClient.destroy()
+		this.clearPollStartTimeout()
 		this.pollState.stop()
+		this.tcpClient.clearQueue()
+		this.tcpClient.destroy()
 		this.AHMState.reset() // Clear out DSP state
 		log.debug('Destroyed')
 	}
@@ -92,6 +99,7 @@ export default class AHMInstance extends InstanceBase {
 	}
 
 	configurePoller() {
+		this.clearPollStartTimeout()
 		this.pollState?.stop()
 		this.pollState = pollStateTimer(
 			() => this.tcpClient,
@@ -112,6 +120,13 @@ export default class AHMInstance extends InstanceBase {
 			},
 			poller: this.pollState,
 		})
+	}
+
+	clearPollStartTimeout() {
+		if (!this.pollStartTimeout) return
+
+		clearTimeout(this.pollStartTimeout)
+		this.pollStartTimeout = null
 	}
 
 	getConfigFields() {
