@@ -311,7 +311,7 @@ export function getPresets(self) {
 	}
 
 	// Generate preset structure
-	// Note: Keep categories small. Opening them registers all feedbacks 
+	// Note: Keep categories small. Opening them registers all feedbacks
 	// and can overload the AHM with TCP requests.
 
 	const structure = []
