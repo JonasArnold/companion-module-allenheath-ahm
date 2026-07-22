@@ -3,6 +3,7 @@ import { ChannelType, SendType, SendInfoType, dbu_Values, PlaybackChannel } from
 import { setLevelCallback, incDecLevelCallback, requestLevelInfo } from './formatMIDI/channels.js'
 import { requestSendInfo, incDecSendLevelCallback, setInputToZoneMute } from './formatMIDI/sends.js'
 import { setPlaybackTrack } from './formatMIDI/playback.js'
+import { recallPreset } from './formatMIDI/presets.js'
 import { getContext } from './context.js'
 import { FeedbackId } from './feedbacks.js'
 import { createLogger } from './utility/log.js'
@@ -354,12 +355,9 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		name: 'Recall Preset',
 		options: listOptions('Preset', PRESET_COUNT),
 		callback: (action) => {
-			// subtract 1 to calculate the 0-indexed preset number for the MIDI command
-			let presetId = action.options.number - 1
-			let bank = Math.floor(presetId / 128)
-			let presetOffset = presetId % 128
-			let buffers = [Buffer.from([0xb0, 0x00, bank, 0xc0, presetOffset])]
-			tcpClient.queue(buffers)
+			let presetNum = action.options.number
+
+			tcpClient.queue(recallPreset(presetNum))
 		},
 	}
 
