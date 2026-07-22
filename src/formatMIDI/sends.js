@@ -46,21 +46,21 @@ export function requestSendInfo(sendType, infoType, fromChNum, toChNum) {
 }
 
 /**
- * Prepares MIDI string for inc/dec send level action
- * @param {*} action - Action instance options
+ * Prepares MIDI string for adjust send level action
  * @param {SendType} type - SendType
+ * @param {Number} fromChNum - Source channel number (1-indexed)
+ * @param {Number} toChNum - Target channel number (1-indexed)
+ * @param {Boolean} increment - true to increment, false to decrement
  * @returns {Buffer} Hex MIDI buffer ready to send
  */
-export function incDecSendLevelCallback(action, type) {
+export function adjustSendLevel(type, fromChNum, toChNum, increment) {
 	if (checkIfValueOfEnum(type, SendType) == false) {
 		return
 	}
 
 	let chType = getChTypeOfSendType(type)
 	let sendChType = getSendChTypeOfSendType(type)
-	let fromChNum = action.options.incdec_ch_number
-	let toChNum = action.options.number
-	let incdecSelector = action.options.incdec == 'inc' ? 0x7f : 0x3f
+	let incdecSelector = increment ? 0x7f : 0x3f
 
 	const command = [
 		Buffer.from([
@@ -83,7 +83,7 @@ export function incDecSendLevelCallback(action, type) {
 	]
 	log.debug(
 		'AdjustSendLevel',
-		{ type, chType, fromChNum, sendChType, toChNum, operation: action.options.incdec, selector: incdecSelector },
+		{ type, chType, fromChNum, sendChType, toChNum, increment, selector: incdecSelector },
 		command,
 	)
 	return command

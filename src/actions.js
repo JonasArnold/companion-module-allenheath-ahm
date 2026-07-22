@@ -1,7 +1,7 @@
 import { getChoicesArrayOf1DArray, getChoicesArrayOfKeyValueObject } from './utility/helpers.js'
 import { ChannelType, SendType, SendInfoType, dbu_Values, PlaybackChannel } from './utility/constants.js'
-import { setLevelCallback, incDecLevelCallback, requestLevelInfo } from './formatMIDI/channels.js'
-import { requestSendInfo, incDecSendLevelCallback, setInputToZoneMute } from './formatMIDI/sends.js'
+import { setLevel, adjustLevel, requestLevelInfo } from './formatMIDI/channels.js'
+import { requestSendInfo, adjustSendLevel, setInputToZoneMute } from './formatMIDI/sends.js'
 import { setPlaybackTrack } from './formatMIDI/playback.js'
 import { recallPreset } from './formatMIDI/presets.js'
 import { getContext } from './context.js'
@@ -115,14 +115,14 @@ function setLevelOptions(label, max) {
 }
 
 /**
- * Builds Companion Action Options for inc/dec level actions
+ * Builds Companion Action Options for adjust level actions
  * Id of the number field will be 'incdec_ch_number'.
  * Id of the increment/decrement checkbox will be 'incdec'.
  * @param {String} label - The label of the number field
  * @param {Number} max - maximum value of the number input
  * @returns {Object[]}
  */
-function incDecOptions(label, max) {
+function adjustLevelOptions(label, max) {
 	return [
 		{
 			type: 'number',
@@ -245,21 +245,27 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		name: 'Set Level of Input',
 		options: setLevelOptions('Input', numberOfInputs),
 		callback: (action) => {
-			log.debug(ActionId.SetInputLevel, { inputNum: action.options.setlvl_ch_number, level: action.options.level })
-			tcpClient.queue(setLevelCallback(action, ChannelType.Input))
+			const inputNum = action.options.setlvl_ch_number
+			const level = parseInt(action.options.level)
+
+			log.debug(ActionId.SetInputLevel, { inputNum, level })
+			tcpClient.queue(setLevel(ChannelType.Input, inputNum, level))
 			setTimeout(() => {
-				tcpClient.queue(requestLevelInfo(ChannelType.Input, action.options.setlvl_ch_number))
+				tcpClient.queue(requestLevelInfo(ChannelType.Input, inputNum))
 			}, 200)
 		},
 	}
 
 	actions[ActionId.AdjustInputLevel] = {
 		name: 'Increment/Decrement Level of Input',
-		options: incDecOptions('Input', numberOfInputs),
+		options: adjustLevelOptions('Input', numberOfInputs),
 		callback: (action) => {
-			tcpClient.queue(incDecLevelCallback(action, ChannelType.Input))
+			const inputNum = action.options.incdec_ch_number
+			const increment = action.options.incdec == 'inc'
+
+			tcpClient.queue(adjustLevel(ChannelType.Input, inputNum, increment))
 			setTimeout(() => {
-				tcpClient.queue(requestLevelInfo(ChannelType.Input, action.options.incdec_ch_number))
+				tcpClient.queue(requestLevelInfo(ChannelType.Input, inputNum))
 			}, 200)
 		},
 	}
@@ -268,21 +274,27 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		name: 'Set Level of Zone',
 		options: setLevelOptions('Zone', numberOfZones),
 		callback: (action) => {
-			log.debug(ActionId.SetZoneLevel, { zoneNum: action.options.setlvl_ch_number, level: action.options.level })
-			tcpClient.queue(setLevelCallback(action, ChannelType.Zone))
+			const zoneNum = action.options.setlvl_ch_number
+			const level = parseInt(action.options.level)
+
+			log.debug(ActionId.SetZoneLevel, { zoneNum, level })
+			tcpClient.queue(setLevel(ChannelType.Zone, zoneNum, level))
 			setTimeout(() => {
-				tcpClient.queue(requestLevelInfo(ChannelType.Zone, action.options.setlvl_ch_number))
+				tcpClient.queue(requestLevelInfo(ChannelType.Zone, zoneNum))
 			}, 200)
 		},
 	}
 
 	actions[ActionId.AdjustZoneLevel] = {
 		name: 'Increment/Decrement Level of Zone',
-		options: incDecOptions('Zone', numberOfZones),
+		options: adjustLevelOptions('Zone', numberOfZones),
 		callback: (action) => {
-			tcpClient.queue(incDecLevelCallback(action, ChannelType.Zone))
+			const zoneNum = action.options.incdec_ch_number
+			const increment = action.options.incdec == 'inc'
+
+			tcpClient.queue(adjustLevel(ChannelType.Zone, zoneNum, increment))
 			setTimeout(() => {
-				tcpClient.queue(requestLevelInfo(ChannelType.Zone, action.options.incdec_ch_number))
+				tcpClient.queue(requestLevelInfo(ChannelType.Zone, zoneNum))
 			}, 200)
 		},
 	}
@@ -291,60 +303,57 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 		name: 'Set Level of Control Group',
 		options: setLevelOptions('Control Group', numberOfControlGroups),
 		callback: (action) => {
-			log.debug(ActionId.SetControlGroupLevel, {
-				controlGroupNum: action.options.setlvl_ch_number,
-				level: action.options.level,
-			})
-			tcpClient.queue(setLevelCallback(action, ChannelType.ControlGroup))
+			const controlGroupNum = action.options.setlvl_ch_number
+			const level = parseInt(action.options.level)
+
+			log.debug(ActionId.SetControlGroupLevel, { controlGroupNum, level })
+			tcpClient.queue(setLevel(ChannelType.ControlGroup, controlGroupNum, level))
 			setTimeout(() => {
-				tcpClient.queue(requestLevelInfo(ChannelType.ControlGroup, action.options.setlvl_ch_number))
+				tcpClient.queue(requestLevelInfo(ChannelType.ControlGroup, controlGroupNum))
 			}, 200)
 		},
 	}
 
 	actions[ActionId.AdjustControlGroupLevel] = {
 		name: 'Increment/Decrement Level of Control Group',
-		options: incDecOptions('Control Group', numberOfControlGroups),
+		options: adjustLevelOptions('Control Group', numberOfControlGroups),
 		callback: (action) => {
-			tcpClient.queue(incDecLevelCallback(action, ChannelType.ControlGroup))
+			const controlGroupNum = action.options.incdec_ch_number
+			const increment = action.options.incdec == 'inc'
+
+			tcpClient.queue(adjustLevel(ChannelType.ControlGroup, controlGroupNum, increment))
 			setTimeout(() => {
-				tcpClient.queue(requestLevelInfo(ChannelType.ControlGroup, action.options.incdec_ch_number))
+				tcpClient.queue(requestLevelInfo(ChannelType.ControlGroup, controlGroupNum))
 			}, 200)
 		},
 	}
 
 	actions[ActionId.AdjustInputToZoneSendLevel] = {
 		name: 'Increment/Decrement Input to Zone Send Level',
-		options: incDecOptions('Input', numberOfInputs).concat(listOptions('Zone', numberOfZones)),
+		options: adjustLevelOptions('Input', numberOfInputs).concat(listOptions('Zone', numberOfZones)),
 		callback: (action) => {
-			tcpClient.queue(incDecSendLevelCallback(action, SendType.InputToZone))
+			const fromChNum = action.options.incdec_ch_number
+			const toChNum = action.options.number
+			const increment = action.options.incdec == 'inc'
+
+			tcpClient.queue(adjustSendLevel(SendType.InputToZone, fromChNum, toChNum, increment))
 			setTimeout(() => {
-				tcpClient.queue(
-					requestSendInfo(
-						SendType.InputToZone,
-						SendInfoType.LEVEL,
-						action.options.incdec_ch_number,
-						action.options.number,
-					),
-				)
+				tcpClient.queue(requestSendInfo(SendType.InputToZone, SendInfoType.LEVEL, fromChNum, toChNum))
 			}, 200)
 		},
 	}
 
 	actions[ActionId.AdjustZoneToZoneSendLevel] = {
 		name: 'Increment/Decrement Zone to Zone Send Level',
-		options: incDecOptions('Zone', numberOfZones).concat(listOptions('Zone', numberOfZones)),
+		options: adjustLevelOptions('Zone', numberOfZones).concat(listOptions('Zone', numberOfZones)),
 		callback: (action) => {
-			tcpClient.queue(incDecSendLevelCallback(action, SendType.ZoneToZone))
+			const fromChNum = action.options.incdec_ch_number
+			const toChNum = action.options.number
+			const increment = action.options.incdec == 'inc'
+
+			tcpClient.queue(adjustSendLevel(SendType.ZoneToZone, fromChNum, toChNum, increment))
 			setTimeout(() => {
-				tcpClient.queue(
-					requestSendInfo(
-						SendType.ZoneToZone,
-						SendInfoType.LEVEL,
-						action.options.incdec_ch_number,
-						action.options.number,
-					),
-				)
+				tcpClient.queue(requestSendInfo(SendType.ZoneToZone, SendInfoType.LEVEL, fromChNum, toChNum))
 			}, 200)
 		},
 	}

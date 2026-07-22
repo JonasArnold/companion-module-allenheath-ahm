@@ -36,38 +36,37 @@ export function requestMuteInfo(type, chNumber) {
 
 /**
  * Prepares MIDI string for set level action
- * @param {*} action - Action instance options
  * @param {ChannelType} type - ChannelType
+ * @param {Number} chNumber - Channel number (1-indexed)
+ * @param {Number} level - Level value
  * @returns {Buffer} Hex MIDI buffer ready to send
  */
-export function setLevelCallback(action, type) {
+export function setLevel(type, chNumber, level) {
 	if (checkIfValueOfEnum(type, ChannelType) == false) {
 		return
 	}
 
 	let typeHex = 0xb0 + type // type code for Command "Channel Level"
-	let chNumber = action.options.setlvl_ch_number
-	let levelDec = parseInt(action.options.level)
 
-	const command = [Buffer.from([typeHex, 0x63, chNumber - 1, typeHex, 0x62, 0x17, typeHex, 0x06, levelDec])]
-	log.debug('SetChannelLevel', { type, chNumber, level: levelDec }, command)
+	const command = [Buffer.from([typeHex, 0x63, chNumber - 1, typeHex, 0x62, 0x17, typeHex, 0x06, level])]
+	log.debug('SetChannelLevel', { type, chNumber, level }, command)
 	return command
 }
 
 /**
- * Prepares MIDI string for inc/dec level action
- * @param {*} action - Action instance options
+ * Prepares MIDI string for adjust level action
  * @param {ChannelType} type - ChannelType
+ * @param {Number} chNumber - Channel number (1-indexed)
+ * @param {Boolean} increment - true to increment, false to decrement
  * @returns {Buffer} Hex MIDI buffer ready to send
  */
-export function incDecLevelCallback(action, type) {
+export function adjustLevel(type, chNumber, increment) {
 	if (checkIfValueOfEnum(type, ChannelType) == false) {
 		return
 	}
 
 	let typeCodeSetLevel = 0xb0 + type // type code for Command "Level Increment / Decrement"
-	let chNumber = action.options.incdec_ch_number
-	let incdecSelector = action.options.incdec == 'inc' ? 0x7f : 0x3f
+	let incdecSelector = increment ? 0x7f : 0x3f
 
 	const command = [
 		Buffer.from([
@@ -82,10 +81,6 @@ export function incDecLevelCallback(action, type) {
 			incdecSelector,
 		]),
 	]
-	log.debug(
-		'AdjustChannelLevel',
-		{ type, chNumber, operation: action.options.incdec, selector: incdecSelector },
-		command,
-	)
+	log.debug('AdjustChannelLevel', { type, chNumber, increment, selector: incdecSelector }, command)
 	return command
 }
