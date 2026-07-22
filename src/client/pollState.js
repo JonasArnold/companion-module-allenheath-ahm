@@ -18,6 +18,7 @@ export function pollStateTimer(getSocket, interval = 10000, onError = console.er
 	let stopped = true
 	let timeout = null
 	let running = false
+	let manualPollPending = false
 	let lastTickStartedAt = 0
 	let lastTickFinishedAt = 0
 
@@ -159,7 +160,14 @@ export function pollStateTimer(getSocket, interval = 10000, onError = console.er
 	 * @returns {void}
 	 */
 	function poll() {
-		if (stopped || running) return
+		if (stopped) return
+
+		// set manualPollPending if tick is running,
+		// to immediately schedule another tick after the current one finishes
+		if (running) {
+			manualPollPending = true
+			return
+		}
 
 		scheduleNextPoll('manual')
 	}
@@ -180,7 +188,12 @@ export function pollStateTimer(getSocket, interval = 10000, onError = console.er
 			timeout = null
 			const didRun = await runTick(reason)
 			if (didRun && !stopped) {
-				scheduleNextPoll()
+				if (manualPollPending) {
+					manualPollPending = false
+					scheduleNextPoll('manual') // will re-trigger a tick immediately
+				} else {
+					scheduleNextPoll() // will schedule the next tick according to interval and cooldown
+				}
 			}
 		}, delay)
 	}
@@ -228,6 +241,7 @@ export function pollStateTimer(getSocket, interval = 10000, onError = console.er
 		if (!stopped) return
 
 		stopped = false
+		manualPollPending = false
 		lastTickStartedAt = 0
 		lastTickFinishedAt = 0
 		log.debug(`Started with an interval of ${interval} ms`)
@@ -242,6 +256,7 @@ export function pollStateTimer(getSocket, interval = 10000, onError = console.er
 		if (stopped) return
 
 		stopped = true
+		manualPollPending = false
 
 		if (timeout) {
 			clearTimeout(timeout)
