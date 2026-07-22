@@ -35,6 +35,25 @@ export function requestMuteInfo(type, chNumber) {
 }
 
 /**
+ * Prepares MIDI string for set mute action
+ * @param {ChannelType} type - ChannelType
+ * @param {Number} chNumber - Channel number (1-indexed)
+ * @param {Boolean} mute - mute state to set
+ * @returns {Buffer} Hex MIDI buffer ready to send
+ */
+export function setMute(type, chNumber, mute) {
+	if (checkIfValueOfEnum(type, ChannelType) == false) {
+		return
+	}
+
+	let typeHex = 0x90 + type // type code for Command "Channel Mute"
+
+	const command = [Buffer.from([typeHex, chNumber - 1, mute ? 0x7f : 0x3f, typeHex, chNumber - 1, 0])]
+	log.debug('SetChannelMute', { type, chNumber, mute }, command)
+	return command
+}
+
+/**
  * Prepares MIDI string for set level action
  * @param {ChannelType} type - ChannelType
  * @param {Number} chNumber - Channel number (1-indexed)

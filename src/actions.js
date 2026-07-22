@@ -1,6 +1,6 @@
 import { getChoicesArrayOf1DArray, getChoicesArrayOfKeyValueObject } from './utility/helpers.js'
 import { ChannelType, SendType, SendInfoType, dbu_Values, PlaybackChannel } from './utility/constants.js'
-import { setLevel, adjustLevel, requestLevelInfo } from './formatMIDI/channels.js'
+import { setMute, setLevel, adjustLevel, requestLevelInfo } from './formatMIDI/channels.js'
 import { requestSendInfo, adjustSendLevel, setInputToZoneMute } from './formatMIDI/sends.js'
 import { setPlaybackTrack } from './formatMIDI/playback.js'
 import { recallPreset } from './formatMIDI/presets.js'
@@ -179,8 +179,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 			let mute = action.options.mute
 
 			log.debug(ActionId.MuteInput, { inputNum, mute })
-			let buffers = [Buffer.from([0x90, inputNum - 1, action.options.mute ? 0x7f : 0x3f, 0x90, inputNum - 1, 0])]
-			tcpClient.queue(buffers)
+			tcpClient.queue(setMute(ChannelType.Input, inputNum, mute))
 
 			state.setChannel(ChannelType.Input, inputNum, undefined, mute)
 			companion.checkFeedbacks(FeedbackId.InputMute)
@@ -195,8 +194,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 			let mute = action.options.mute
 
 			log.debug(ActionId.MuteZone, { zoneNum, mute })
-			let buffers = [Buffer.from([0x91, zoneNum - 1, action.options.mute ? 0x7f : 0x3f, 0x91, zoneNum - 1, 0])]
-			tcpClient.queue(buffers)
+			tcpClient.queue(setMute(ChannelType.Zone, zoneNum, mute))
 
 			state.setChannel(ChannelType.Zone, zoneNum, undefined, mute)
 			companion.checkFeedbacks(FeedbackId.ZoneMute)
@@ -211,8 +209,7 @@ export function getActions(numberOfInputs, numberOfZones, numberOfControlGroups)
 			let mute = action.options.mute
 
 			log.debug(ActionId.MuteControlGroup, { cgNum, mute })
-			let buffers = [Buffer.from([0x92, cgNum - 1, action.options.mute ? 0x7f : 0x3f, 0x92, cgNum - 1, 0])]
-			tcpClient.queue(buffers)
+			tcpClient.queue(setMute(ChannelType.ControlGroup, cgNum, mute))
 
 			state.setChannel(ChannelType.ControlGroup, cgNum, undefined, mute)
 			companion.checkFeedbacks(FeedbackId.ControlGroupMute)
