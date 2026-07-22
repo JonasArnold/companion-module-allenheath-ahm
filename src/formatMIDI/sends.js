@@ -46,6 +46,37 @@ export function requestSendInfo(sendType, infoType, fromChNum, toChNum) {
 }
 
 /**
+ * Prepare MIDI string for setting input to zone mute
+ * @param {Number} inputNumber - Input channel number (1-indexed)
+ * @param {Number} zoneNumber - Zone number (1-indexed)
+ * @param {Boolean} mute - mute state to set
+ * @returns {Buffer} Hex MIDI buffer ready to send
+ */
+export function setInputToZoneMute(inputNumber, zoneNumber, mute) {
+	const command = [
+		Buffer.from([
+			0xf0,
+			0x00,
+			0x00,
+			0x1a,
+			0x50,
+			0x12,
+			0x01,
+			0x00,
+			0x00,
+			0x03,
+			inputNumber - 1,
+			0x01,
+			zoneNumber - 1,
+			mute ? 0x7f : 0x3f,
+			0xf7,
+		]),
+	]
+	log.debug('SetInputToZoneMute', { inputNumber, zoneNumber, mute }, command)
+	return command
+}
+
+/**
  * Prepares MIDI string for adjust send level action
  * @param {SendType} type - SendType
  * @param {Number} fromChNum - Source channel number (1-indexed)
@@ -86,36 +117,5 @@ export function adjustSendLevel(type, fromChNum, toChNum, increment) {
 		{ type, chType, fromChNum, sendChType, toChNum, increment, selector: incdecSelector },
 		command,
 	)
-	return command
-}
-
-/**
- * Prepare MIDI string for setting input to zone mute
- * @param {Number} inputNumber - Input channel number (1-indexed)
- * @param {Number} zoneNumber - Zone number (1-indexed)
- * @param {Boolean} mute - mute state to set
- * @returns {Buffer} Hex MIDI buffer ready to send
- */
-export function setInputToZoneMute(inputNumber, zoneNumber, mute) {
-	const command = [
-		Buffer.from([
-			0xf0,
-			0x00,
-			0x00,
-			0x1a,
-			0x50,
-			0x12,
-			0x01,
-			0x00,
-			0x00,
-			0x03,
-			inputNumber - 1,
-			0x01,
-			zoneNumber - 1,
-			mute ? 0x7f : 0x3f,
-			0xf7,
-		]),
-	]
-	log.debug('SetInputToZoneMute', { inputNumber, zoneNumber, mute }, command)
 	return command
 }
