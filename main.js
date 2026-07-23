@@ -15,7 +15,7 @@ import { createLogger } from './src/utility/log.js'
 const MIDI_PORT = 51325
 const log = createLogger('Instance')
 
-export default class AHMInstance extends InstanceBase {
+export default class ModuleInstance extends InstanceBase {
 	constructor(internal) {
 		super(internal)
 	}
