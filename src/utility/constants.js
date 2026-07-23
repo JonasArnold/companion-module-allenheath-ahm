@@ -1,3 +1,5 @@
+import { combineRgb } from '@companion-module/base'
+
 // dBu Decimal Mapping Array
 export const dbu_Values = [
 	'-inf',
@@ -130,12 +132,18 @@ export const dbu_Values = [
 	'+10.0',
 ]
 
-// Channel Type (Variable N in documentation)
+/**
+ * Channel Channel Type (Variable N in documentation)
+ */
 export const ChannelType = {
 	Input: 0,
 	Zone: 1,
 	ControlGroup: 2,
 }
+
+/**
+ * @typedef {typeof ChannelType[keyof typeof ChannelType]} ChannelType
+ */
 
 // Send Type, high nibble stands for channel type, low nibble stands for send channel type
 export const SendType = {
@@ -143,11 +151,21 @@ export const SendType = {
 	ZoneToZone: 0x11, // 0b 00010001
 }
 
-// Types of feedbacks to monitor (e.g. poll or update on connect)
-export const MonitoredFeedbackType = {
-	Undefined: 0,
-	MuteState: 1,
+/**
+ * @typedef {typeof SendType[keyof typeof SendType]} SendType
+ */
+
+/**
+ * What info to request from a send? LEVEL or MUTE
+ */
+export const SendInfoType = {
+	LEVEL: 0x02,
+	MUTE: 0x03,
 }
+
+/**
+ * @typedef {typeof SendInfoType[keyof typeof SendInfoType]} SendInfoType
+ */
 
 // Playback Channel for "Audio Playback" Command
 export const PlaybackChannel = {
@@ -155,3 +173,27 @@ export const PlaybackChannel = {
 	Mono2: 1,
 	Stereo: 2,
 }
+
+/**
+ * @typedef {typeof PlaybackChannel[keyof typeof PlaybackChannel]} PlaybackChannel
+ */
+
+// Color swatches across the entire module
+export const Colors = {
+	White: combineRgb(255, 255, 255),
+	Red: combineRgb(200, 0, 0),
+	Blue: combineRgb(5, 151, 242),
+	Black: combineRgb(0, 0, 0),
+}
+
+/**
+ * Priority for packet sending (user action vs. polling)
+ */
+export const Priority = {
+	HIGH: 0,
+	LOW: 1,
+}
+
+/**
+ * @typedef {typeof Priority[keyof typeof Priority]} Priority
+ */

@@ -1,24 +1,8 @@
 import { InstanceBase } from '@companion-module/base'
+import { ChannelType, dbu_Values } from './constants.js'
+import { createLogger } from './log.js'
 
-/**
- * Generates a Dropdown Choices Array with labelled incrementing values.
- * Example: name = "Mute Input", Qty=64, Offset=1
- * Output:
- * { id: '0', label: 'Mute Input 1' },
- * { id: '1', label: 'Mute Input 2' },
- * ...
- * { id: '63', label: 'Mute Input 64' },
- * @param name Prefix of the label
- * @param qty Amount of elements to generate
- * @param offset offset between number of elements
- */
-export function getChoicesArrayWithIncrementingNumbers(name, qty, offset) {
-	let choices = []
-	for (let i = 1; i <= qty; i++) {
-		choices.push({ label: `${name} ${i}`, id: i + offset })
-	}
-	return choices
-}
+const log = createLogger('Helpers')
 
 /**
  * Generates a Dropdown Choices Array with values of a single-dimension array.
@@ -86,12 +70,11 @@ export function getVarNameCGLevel(cgNum) {
  * @param enumType enum to check wether value is value of
  */
 export function checkIfValueOfEnum(value, enumType) {
-	if (Object.values(enumType).includes(value)) {
-		return true
-	} else {
-		console.error(`checkIfValueOfEnum: value '${value}' was found not to be of enum type '${enumType}'`)
-		return false
-	}
+	const allowedValues = Object.values(enumType)
+	if (allowedValues.includes(value)) return true
+
+	log.warn('InvalidEnumValue', { value, allowedValues: allowedValues.join(',') })
+	return false
 }
 
 /**
@@ -110,4 +93,41 @@ export function getChTypeOfSendType(sendType) {
  */
 export function getSendChTypeOfSendType(sendType) {
 	return parseInt(0x00 + (sendType & 0x0f)) // bitwise and with low nibble to only get its value (send type)
+}
+
+/**
+ * Return corresponding dBu Value to decimal number
+ * @param {*} dezValue
+ * @returns
+ */
+export function getDbuValue(dezValue) {
+	if (Number.isInteger(dezValue) == false || dezValue > 127 || dezValue < 0) {
+		return NaN
+	}
+
+	return dbu_Values[dezValue]
+}
+
+/**
+ * Take a string of comma-separated ids and turn them into an array
+ * @param {String} ids
+ * @returns {Number[]}
+ */
+export function parseIDsToArray(ids) {
+	return String(ids ?? '')
+		.split(',')
+		.map((x) => x.trim())
+		.filter((x) => x !== '') // remove empty strings so empty not interpreted as "channel 0"
+		.map((x) => Number(x))
+		.filter((x) => Number.isFinite(x))
+}
+
+/**
+ * Returns the channel type name for a given channel type value.
+ * @param {number} channelTypeValue Channel type value
+ * @returns {string|null}
+ */
+export function getChannelTypeName(channelTypeValue) {
+	const entry = Object.entries(ChannelType).find(([, value]) => value === channelTypeValue)
+	return entry ? entry[0] : null
 }
